@@ -7,7 +7,7 @@ def read_code_files():
     code = ""
     for root, dirs, files in os.walk("src"):
         for f in files:
-            if f.endswith(".py"):
+            if f.endswith(".rs"):
                 with open(os.path.join(root, f)) as file:
                     code += f"# {f}\n" + file.read() + "\n\n"
     return code
