@@ -1,50 +1,42 @@
-# README.md
+# プロジェクト概要
 
-# Fibonacci Generator
+このプロジェクトは、フィボナッチ数列のn番目の数値を計算して出力する小規模なRustプログラムです。フィボナッチ数列の計算方法とその出力の方法に重点を置いています。
 
-This repository contains code in the Rust programming language for a Fibonacci number generator.
+# ディレクトリ構成
 
-# File Structure
+本プロジェクトは`main.rs`ファイルのみで構成されています。
 
-This repository only contains one Rust file:
+- main.rs：アプリケーションのメインロジックが含まれています
 
-- `main.rs`: This file has functions to generate the Fibonacci number.
+# セットアップ方法
 
-# Code Overview
+下記の手順に従って、ローカル環境にRustの環境をセットアップし、プロジェクトをビルド・実行してください。
 
-## `main.rs`
-This rust source file contains two main functions:
+```bash
+# Rustの環境をセットアップ
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-1. `fn fibonacci(n: u32) -> u64`:
-   - This function accepts a single parameter, `n` (an unsigned 32-bit integer), and returns an unsigned 64-bit integer.
-   - The purpose of this function is to generate Fibonacci sequence and then return the "nth" number in the Fibonacci series, where `n` is an argument.
-   - It first checks if `n` is 0 or 1 and returns the same value if it is.
-   - It then initializes two mutable variables `a` and `b` to 0 and 1 respectively.
-   - Later, it runs a for loop from 2 to "nth" number and keeps resetting `a` and `b` with new values in sequence.
-   - Finally, returns the value at `b` as the "nth" value in the Fibonacci sequence.
+# リポジトリをクローン (プロジェクトのリポジトリURLに書き換えてください)
+git clone <プロジェクトのリポジトリURL>
 
-2. `fn main()`:
-   - The main function is the entry point for the program.
-   - It first sets `n` equal to 20.
-   - It then calls the `fibonacci` function, passing `n` as the argument, and prints the result in a formatted string.
+# ディレクトリに移動
+cd <クローンしたリポジトリのディレクトリ名>
 
-# How to Run
+# ビルド
+cargo build
 
-- Make sure you have Rust installed on your machine. If you don't, please follow the guide [here](https://www.rust-lang.org/tools/install) to install rust.
-- To run the program, navigate to the directory where `main.rs` is located.
-- Run the `rustc main.rs` command to compile the code.
-- Use `./main` to execute the compiled code.
+# 実行
+cargo run
+```
 
-# Outputs
+# 使用されている主なライブラリや技術
 
-The program will output the 20th number in the Fibonacci sequence.
+このプロジェクトは、標準ライブラリだけを使用しており、特別な依存ライブラリは必要ありません。
 
-# Support 
+# 実装のポイント・特徴的なモジュール
 
-For any issues or improvements, please open an issue on GitHub.
+このプログラムは`main.rs`ファイルの中に全てのロジックが含まれています。主なポイントは`fibonacci`関数で、引数`n`として受け取った番号のフィボナッチ数列の値を計算しています。その結果を`main`関数から出力しています。
 
-# Contributing
+# 今後の課題やTODO
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
+フィボナッチ数列の他の応用例や計算方法を追加するなど、プログラムを更に発展させる余地があります。また、エラーハンドリングの強化や計算結果のフォーマットについて考慮することも推奨されます。
