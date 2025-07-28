@@ -1,13 +1,13 @@
-import openai
 import os
+from openai import OpenAI
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 def read_code_files():
     code = ""
     for root, dirs, files in os.walk("src"):
         for f in files:
-            if f.endswith(".rs"):
+            if f.endswith(".py"):
                 with open(os.path.join(root, f)) as file:
                     code += f"# {f}\n" + file.read() + "\n\n"
     return code
@@ -19,7 +19,7 @@ Generate a detailed README.md from the following codebase:
 {read_code_files()}
 """
 
-response = openai.ChatCompletion.create(
+response = client.chat.completions.create(
     model="gpt-4",
     messages=[
         {"role": "system", "content": "You are a helpful assistant that writes clear documentation."},
@@ -27,6 +27,8 @@ response = openai.ChatCompletion.create(
     ]
 )
 
+content = response.choices[0].message.content
+
 os.makedirs("docs", exist_ok=True)
 with open("docs/generated.md", "w") as f:
-    f.write(response['choices'][0]['message']['content'])
+    f.write(content)
