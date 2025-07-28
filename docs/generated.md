@@ -1,95 +1,12 @@
-Based on your command, it seems like there wasn't any provided information about your codebase. Normally, I would require specific details about your code (e.g., its language, function, libraries, etc.). However, I will provide a template which can be edited according to your specific needs.
+In order to provide a helpful README, we need more specific information about your codebase. A good README file usually includes:
 
-~~~
+1. A project title and description.
+2. Installation guide, if necessary.
+3. Explanation of how to use the project.
+4. Code examples.
+5. Information on how to test the project.
+6. Contact information for the author or team.
+7. Link to any live version.
+8. Licence information.
 
-# Project Title
-
-One Paragraph of project description goes here
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development environment running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-- [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-- [Maven](https://maven.apache.org/) - Dependency Management
-- [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-- **Your Name** - *Initial work* - [YourName](https://github.com/yourname)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-- Hat tip to anyone whose code was used
-- Inspiration
-- etc
-
-~~~
-
-This README file sets a guideline for what you should be documenting about your projects. It should introduce your project to users, teach them how to install it, how to use it, list its dependencies, and acknowledge contributors and resources you found helpful in creating your project. Please fill this template out with respect to what your specific code project is about.
+Please provide these details so we can create a comprehensive README.
