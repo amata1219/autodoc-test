@@ -1,0 +1,58 @@
+[app]
+name = "AI Agent System"
+version = "0.1.0"
+environment = "development"
+debug = true
+host = "127.0.0.1"
+port = 8080
+
+[database]
+url = "postgresql://localhost/ai_agent_dev"
+max_connections = 10
+min_connections = 2
+connection_timeout = 30
+idle_timeout = 300
+max_lifetime = 3600
+
+[redis]
+url = "redis://localhost:6379"
+pool_size = 5
+connection_timeout = 5
+read_timeout = 3
+write_timeout = 3
+
+[http]
+cors_origins = ["http://localhost:3000", "http://localhost:3001"]
+rate_limit_requests = 1000
+rate_limit_window = 3600
+request_timeout = 30
+max_body_size = 10485760
+
+[security]
+jwt_secret = "dev-secret-key-change-in-production"
+jwt_expiration = 86400
+bcrypt_cost = 10
+api_key_required = false
+encryption_enabled = false
+allowed_ips = ["127.0.0.1", "::1"]
+
+[logging]
+level = "debug"
+format = "json"
+output = "console"
+file_path = "logs/app.log"
+max_file_size = 104857600
+max_files = 10
+
+[machine_learning]
+model_cache_size = 100
+training_timeout = 3600
+inference_timeout = 30
+gpu_enabled = false
+model_update_interval = 86400
+
+[plugins]
+plugin_directory = "plugins"
+auto_load = true
+sandbox_enabled = true
+max_plugin_memory = 104857600
