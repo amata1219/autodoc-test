@@ -1,92 +1,36 @@
 [package]
-name = "ai-agent-system"
+name = "netmate-api"
 version = "0.1.0"
 edition = "2021"
-authors = ["AI Developer"]
-description = "A large-scale AI agent system built with clean architecture"
-license = "MIT"
 
 [dependencies]
-# Async runtime
-tokio = { version = "1.0", features = ["full"] }
-async-trait = "0.1"
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.8"
-
-# Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "sqlite", "chrono"] }
-redis = { version = "0.23", features = ["tokio-comp"], optional = true }
-
-# HTTP and API
-axum = { version = "0.7", optional = true }
-tower = { version = "0.4", optional = true }
-tower-http = { version = "0.5", features = ["cors", "trace"], optional = true }
-hyper = { version = "1.0", optional = true }
-
-# Configuration and environment
-config = "0.14"
-dotenv = "0.15"
-
-# Logging
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# Error handling
-anyhow = "1.0"
-thiserror = "1.0"
-
-# Time handling
-chrono = { version = "0.4", features = ["serde"] }
-time = "0.3"
-
-# UUID generation
-uuid = { version = "1.0", features = ["v4", "serde"] }
-
-# Machine learning and AI
-tch = { version = "0.13", optional = true }
-ndarray = { version = "0.15", optional = true }
-
-# Security
-bcrypt = "0.15"
-jsonwebtoken = "9.0"
-rand = "0.8"
-
-# CLI
-clap = { version = "4.0", features = ["derive"], optional = true }
-
-# Testing
-mockall = "0.12"
-testcontainers = "0.15"
-
-# Utilities
-futures = "0.3"
-pin-project = "1.0"
-parking_lot = "0.12"
-
-[dev-dependencies]
-tokio-test = "0.4"
-tempfile = "3.0"
-
-[[bin]]
-name = "ai-agent"
-path = "src/main.rs"
-
-[[bin]]
-name = "ai-agent-cli"
-path = "src/bin/cli.rs"
-
-[[bin]]
-name = "ai-agent-api"
-path = "src/bin/api.rs"
-
-[features]
-default = ["postgres", "redis", "web"]
-postgres = ["sqlx/postgres"]
-sqlite = ["sqlx/sqlite"]
-redis = ["dep:redis"]
-ml = ["tch", "ndarray"]
-web = ["axum", "tower-http", "hyper"]
-cli = ["clap"]
+anyhow = "1.0.86"
+argon2 = "0.5.3"
+axum = { version = "0.7.5", features = ["json"] }
+axum-extra = { version = "0.9.3", features = ["cookie"] }
+axum-macros = "0.4.1"
+base64 = "0.22.1"
+bb8-redis = "0.16.0"
+cookie = "0.18.1"
+dotenvy = "0.15.7"
+elasticsearch = "8.15.0-alpha.1"
+http = "1.1.0"
+idna = "1.0.2"
+pin-project = "1.1.5"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+redis = { version = "0.26.1", features = ["uuid", "tokio-comp"]}
+regex = "1.10.6"
+resend-rs = "0.9.1"
+reqwest = { version = "0.10.10", features = ["json"] }
+scylla = "0.14.0"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.1"
+thiserror = "1.0.61"
+time = "0.3.36"
+tokio = { version = "1.38.0", features = ["rt-multi-thread"] }
+tower = "0.4.13"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["time"] }
+uuid = { version = "1.10.0", features = ["fast-rng", "serde", "v4", "v7"] }
+xxhash-rust = { version = "0.8.12", features = ["xxh3"] }
