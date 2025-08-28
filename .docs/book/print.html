@@ -1,0 +1,421 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>新しいソーシャルネットワークサービス Netmate</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">新しいソーシャルネットワークサービス Netmate</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="新しいソーシャルネットワークサービス-netmate"><a class="header" href="#新しいソーシャルネットワークサービス-netmate">新しいソーシャルネットワークサービス Netmate</a></h1>
+<p>このサイトはソースコード（Single Source of Truth）から自動生成された、主要概念の読み物です。</p>
+<ul>
+<li>生成日時: 2025-08-28 10:24:33 UTC</li>
+<li>対象ディレクトリ: <code>src</code></li>
+</ul>
+<p>各章は、該当概念に関する関連コードを解析し、非エンジニアにも読みやすい形でまとめています。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
+<h2 id="概要"><a class="header" href="#概要">概要</a></h2>
+<p>タグは、情報を整理し、関連性を持たせるためのラベルです。特に、異なる情報やデータの関係を示すために使用されます。タグは、階層的な関係を持つことができ、上位タグや下位タグとして分類されます。</p>
+<h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
+<p>タグを使用することで、情報を効率的に検索・整理することが可能になります。特に、データが膨大な場合や多様な情報が存在する場合、タグによる分類は重要です。また、ユーザーが情報を見つけやすくするための手段としても機能します。</p>
+<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
+<ol>
+<li><strong>タグの作成</strong>: 新しいタグを作成し、必要に応じて上位タグや下位タグを設定します。</li>
+<li><strong>タグの関連付け</strong>: タグ同士の関係を定義します。これにより、タグ間の階層関係が形成されます。</li>
+<li><strong>タグの利用</strong>: 作成したタグを用いて情報を整理し、検索を行います。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant TagSystem
+    User-&gt;&gt;TagSystem: タグを作成
+    TagSystem--&gt;&gt;User: タグIDを返す
+    User-&gt;&gt;TagSystem: タグの関連付け
+    TagSystem--&gt;&gt;User: 関連付け完了
+    User-&gt;&gt;TagSystem: タグを利用して情報を検索
+    TagSystem--&gt;&gt;User: 検索結果を返す
+</code></pre>
+<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
+<ul>
+<li><strong>タグID</strong>: タグを一意に識別するためのID。</li>
+<li><strong>タグ名</strong>: タグの名称。</li>
+<li><strong>タグ情報</strong>: タグに関連するメタデータ（例: 提案中かどうか、安定性など）。</li>
+<li><strong>タグ階層</strong>: タグ間の関係を示す情報（上位、同値、下位）。</li>
+</ul>
+<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>外部インターフェース</strong>: タグの作成、関連付け、検索を行うAPIエンドポイント。</li>
+<li><strong>内部インターフェース</strong>: タグのデータを管理するためのデータベースとのやり取り。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
+<p>ユーザーが「日本語」というタグを作成し、そのタグを「言語」という上位タグに関連付けます。その後、ユーザーは「日本語」を使って関連する情報を検索し、必要なデータを見つけます。</p>
+<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
+<ul>
+<li>タグ名は特定の文字数制限があり、過剰な長さのタグ名は受け付けられません。</li>
+<li>タグ間の関係は明確に定義されている必要があり、同じタグ間の関係を評価することはできません。</li>
+</ul>
+<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<ul>
+<li><strong>タグ</strong>: 情報を分類するためのラベル。</li>
+<li><strong>上位タグ</strong>: 他のタグを包含するタグ。</li>
+<li><strong>下位タグ</strong>: 上位タグに属するタグ。</li>
+<li><strong>同値タグ</strong>: 同じレベルのタグ同士の関係。</li>
+</ul>
+<h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
+<ul>
+<li><code>src/common/tag/mod.rs</code></li>
+<li><code>src/common/tag/hierarchy.rs</code></li>
+<li><code>src/common/tag/language_group.rs</code></li>
+<li><code>src/common/tag/non_top_tag.rs</code></li>
+<li><code>src/common/tag/proposal_operation.rs</code></li>
+<li><code>src/common/tag/redis_tag_info.rs</code></li>
+<li><code>src/common/tag/relation.rs</code></li>
+<li><code>src/common/tag/tag_id.rs</code></li>
+<li><code>src/common/tag/tag_info.rs</code></li>
+<li><code>src/common/tag/tag_name.rs</code></li>
+<li><code>src/common/tag/top_tag.rs</code></li>
+<li><code>src/endpoints/tag/list/mod.rs</code></li>
+<li><code>src/endpoints/tag/proposal/mod.rs</code></li>
+<li><code>src/endpoints/tag/rating/mod.rs</code></li>
+<li><code>src/endpoints/tag/search/mod.rs</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
+<h2 id="概要-1"><a class="header" href="#概要-1">概要</a></h2>
+<p>ハンドルネームは、ユーザーがオンラインで自分を識別するための名前です。この名前は、個人のプライバシーを保護しつつ、他のユーザーとのコミュニケーションを円滑にするために重要です。</p>
+<h2 id="なぜ重要か-1"><a class="header" href="#なぜ重要か-1">なぜ重要か</a></h2>
+<p>ハンドルネームは、ユーザーのアイデンティティを形成し、コミュニティ内での認知度を高めます。また、他のユーザーと区別するための重要な要素であり、特にオンラインプラットフォームでは、個人情報を公開せずに交流する手段として機能します。</p>
+<h2 id="基本の流れ-1"><a class="header" href="#基本の流れ-1">基本の流れ</a></h2>
+<ol>
+<li>ユーザーがハンドルネームを入力します。</li>
+<li>システムがそのハンドルネームの有効性を確認します。</li>
+<li>有効な場合、ハンドルネームが登録されます。</li>
+<li>登録されたハンドルネームは、他のユーザーとのやり取りに使用されます。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant System
+    User-&gt;&gt;System: ハンドルネームを入力
+    System--&gt;&gt;User: 有効性を確認
+    alt 有効
+        System--&gt;&gt;User: ハンドルネームを登録
+    else 無効
+        System--&gt;&gt;User: エラーメッセージを表示
+    end
+</code></pre>
+<h2 id="主要コンポーネント-1"><a class="header" href="#主要コンポーネント-1">主要コンポーネント</a></h2>
+<ul>
+<li><strong>ハンドルネームのバリデーション</strong>: 入力されたハンドルネームが空でないか、文字数制限を超えていないかを確認します。</li>
+<li><strong>ハンドルネームの登録</strong>: 有効なハンドルネームをデータベースに保存します。</li>
+<li><strong>ハンドルネームの管理</strong>: ハンドルネームの変更や削除を行うための機能を提供します。</li>
+</ul>
+<h2 id="外部内部インターフェース-1"><a class="header" href="#外部内部インターフェース-1">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>外部インターフェース</strong>: ユーザーがハンドルネームを入力するためのフォーム。</li>
+<li><strong>内部インターフェース</strong>: バリデーションや登録処理を行うAPIエンドポイント。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ-1"><a class="header" href="#例ユーザー視点のシナリオ-1">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーが「@example_user」というハンドルネームを入力します。</li>
+<li>システムがそのハンドルネームが空でないこと、文字数が適切であることを確認します。</li>
+<li>問題がなければ、「@example_user」が正常に登録され、他のユーザーと交流できるようになります。</li>
+</ol>
+<h2 id="制約と既知の注意点-1"><a class="header" href="#制約と既知の注意点-1">制約と既知の注意点</a></h2>
+<ul>
+<li>ハンドルネームは最大100文字までとし、特定の文字数制限があります。</li>
+<li>空のハンドルネームは許可されていません。</li>
+<li>特殊文字や不適切な内容を含むハンドルネームは登録できません。</li>
+</ul>
+<h2 id="用語集-1"><a class="header" href="#用語集-1">用語集</a></h2>
+<ul>
+<li><strong>ハンドルネーム</strong>: オンラインでのユーザーの識別名。</li>
+<li><strong>バリデーション</strong>: 入力されたデータが正しいかどうかを確認するプロセス。</li>
+</ul>
+<h2 id="関連ファイル-1"><a class="header" href="#関連ファイル-1">関連ファイル</a></h2>
+<ul>
+<li><code>src/common/handle/name.rs</code></li>
+<li><code>src/endpoints/handle/create/mod.rs</code></li>
+<li><code>src/endpoints/handle/delete/mod.rs</code></li>
+<li><code>src/endpoints/handle/rename/mod.rs</code></li>
+<li><code>src/endpoints/handle/list/mod.rs</code></li>
+<li><code>src/endpoints/handle/count/mod.rs</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="セッション管理"><a class="header" href="#セッション管理">セッション管理</a></h1>
+<h2 id="概要-2"><a class="header" href="#概要-2">概要</a></h2>
+<p>セッション管理は、ユーザーがアプリケーションにログインしている間、その状態を維持するための仕組みです。これにより、ユーザーは再度ログインすることなく、アプリケーションを利用し続けることができます。セッションは、ユーザーの識別情報や認証情報を安全に保存し、必要に応じて更新することが可能です。</p>
+<h2 id="なぜ重要か-2"><a class="header" href="#なぜ重要か-2">なぜ重要か</a></h2>
+<p>セッション管理は、ユーザーエクスペリエンスを向上させるだけでなく、セキュリティの観点からも重要です。適切なセッション管理により、ユーザーの情報を保護し、不正アクセスを防ぐことができます。また、セッションの有効期限を設定することで、一定時間操作が行われなかった場合に自動的にログアウトすることができ、セキュリティを強化します。</p>
+<h2 id="基本の流れ-2"><a class="header" href="#基本の流れ-2">基本の流れ</a></h2>
+<ol>
+<li><strong>セッションの開始</strong>: ユーザーがログインすると、新しいセッションが作成され、セッションIDとリフレッシュトークンが生成されます。</li>
+<li><strong>クッキーの設定</strong>: セッションIDとリフレッシュトークンは、クッキーとしてブラウザに保存されます。これにより、ユーザーのブラウザが次回リクエストを送信する際に、これらの情報を自動的に送信します。</li>
+<li><strong>セッションの管理</strong>: ユーザーがアプリケーションを利用する際、セッションの有効性が確認され、必要に応じてセッションが更新されます。</li>
+<li><strong>セッションの終了</strong>: ユーザーがログアウトするか、セッションの有効期限が切れると、セッションは終了します。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant Server
+
+    User-&gt;&gt;Server: ログインリクエスト
+    Server--&gt;&gt;User: セッションIDとリフレッシュトークンを返す
+    User-&gt;&gt;Server: リクエスト（クッキーにセッション情報あり）
+    Server--&gt;&gt;User: リクエスト処理結果
+    User-&gt;&gt;Server: ログアウトリクエスト
+    Server--&gt;&gt;User: セッション終了
+</code></pre>
+<h2 id="主要コンポーネント-2"><a class="header" href="#主要コンポーネント-2">主要コンポーネント</a></h2>
+<ul>
+<li><strong>セッションID</strong>: 各セッションを一意に識別するためのトークン。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを更新するために使用されるトークン。</li>
+<li><strong>クッキー</strong>: セッション情報をブラウザに保存するための仕組み。</li>
+</ul>
+<h2 id="外部内部インターフェース-2"><a class="header" href="#外部内部インターフェース-2">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>外部インターフェース</strong>: ユーザーがログインするためのAPIエンドポイント、セッション情報を取得するためのAPIエンドポイント。</li>
+<li><strong>内部インターフェース</strong>: セッションの生成、更新、検証を行うための関数やモジュール。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ-2"><a class="header" href="#例ユーザー視点のシナリオ-2">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーがアプリケーションにログインすると、サーバーはセッションIDとリフレッシュトークンを生成し、クッキーに保存します。</li>
+<li>ユーザーがアプリケーションを利用する際、ブラウザは自動的にクッキーを送信し、サーバーはセッションの有効性を確認します。</li>
+<li>ユーザーが一定時間操作を行わなかった場合、セッションは自動的に終了し、再度ログインが必要になります。</li>
+</ol>
+<h2 id="制約と既知の注意点-2"><a class="header" href="#制約と既知の注意点-2">制約と既知の注意点</a></h2>
+<ul>
+<li>セッションの有効期限を設定することで、セキュリティを強化する必要がありますが、ユーザーエクスペリエンスに影響を与える可能性があります。</li>
+<li>セッション情報が漏洩しないよう、クッキーはセキュアに設定する必要があります。</li>
+</ul>
+<h2 id="用語集-2"><a class="header" href="#用語集-2">用語集</a></h2>
+<ul>
+<li><strong>セッション</strong>: ユーザーがアプリケーションにログインしている間の状態を保持する仕組み。</li>
+<li><strong>クッキー</strong>: ブラウザに保存される小さなデータで、セッション情報を保持するために使用される。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを更新するために使用されるトークン。</li>
+</ul>
+<h2 id="関連ファイル-2"><a class="header" href="#関連ファイル-2">関連ファイル</a></h2>
+<ul>
+<li><code>src/common/session/mod.rs</code></li>
+<li><code>src/common/session/cookie.rs</code></li>
+<li><code>src/common/session/refresh_token.rs</code></li>
+<li><code>src/common/session/session_id.rs</code></li>
+<li><code>src/common/session/session_series.rs</code></li>
+<li><code>src/common/session/session_expiration.rs</code></li>
+<li><code>src/common/session/refresh_pair_expiration.rs</code></li>
+<li><code>src/middlewares/manage_session/mod.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/manage_session.rs</code></li>
+<li><code>src/middlewares/start_session/mod.rs</code></li>
+<li><code>src/middlewares/start_session/dsl/start_session.rs</code></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

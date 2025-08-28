@@ -1,0 +1,272 @@
+src:
+  common:
+    api_key:
+      expiration.rs: null
+      key.rs: null
+      mod.rs: null
+      refreshed_at.rs: null
+    auth:
+      mod.rs: null
+      one_time_token.rs: null
+      password.rs: null
+    character_count.rs: null
+    consensus:
+      mod.rs: null
+      proposal.rs: null
+      stability.rs: null
+    cycle.rs: null
+    email:
+      address.rs: null
+      mod.rs: null
+      resend.rs: null
+      send.rs: null
+    fallible.rs: null
+    handle:
+      id.rs: null
+      mod.rs: null
+      name.rs: null
+      share_count.rs: null
+    mod.rs: null
+    page.rs: null
+    profile:
+      account_id.rs: null
+      birth_year.rs: null
+      language.rs: null
+      mod.rs: null
+      region.rs: null
+    rating.rs: null
+    session:
+      cookie.rs: null
+      mod.rs: null
+      refresh_pair_expiration.rs: null
+      refresh_token.rs: null
+      session_expiration.rs: null
+      session_id.rs: null
+      session_series.rs: null
+    tag:
+      hierarchy.rs: null
+      language_group.rs: null
+      mod.rs: null
+      non_top_tag.rs: null
+      proposal_operation.rs: null
+      redis_tag_info.rs: null
+      relation.rs: null
+      tag_id.rs: null
+      tag_info.rs: null
+      tag_name.rs: null
+      top_tag.rs: null
+    token.rs: null
+    turnstile.rs: null
+    unixtime.rs: null
+    uuid:
+      mod.rs: null
+      uuid4.rs: null
+      uuid7.rs: null
+  endpoints:
+    api_key:
+      dsl.rs: null
+      endpoint.rs: null
+      interpreter.rs: null
+      mod.rs: null
+    auth:
+      creation:
+        mod.rs: null
+        sign_up:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+        value.rs: null
+        verify_email:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+      mod.rs: null
+      sign_in:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      sign_out:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+    handle:
+      count:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      create:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      delete:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      list:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      mod.rs: null
+      rename:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+    mod.rs: null
+    profile:
+      language:
+        get:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+        mod.rs: null
+        set:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+      mod.rs: null
+      region:
+        mod.rs: null
+        set:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+    tag:
+      list:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+      mod.rs: null
+      proposal:
+        mod.rs: null
+        propose:
+          dsl:
+            mod.rs: null
+            propose.rs: null
+            relate_hierarchical_tags.rs: null
+            validate_topology.rs: null
+          endpoint.rs: null
+          interpreter:
+            add_proposals_to_hierarchical_tag_lists.lua: null
+            mod.rs: null
+            propose.rs: null
+            update_tag_list.rs: null
+            validate_topology.rs: null
+          mod.rs: null
+        withdraw:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+          remove_proposals_from_hierarchical_tag_lists.lua: null
+      rating:
+        get:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+        mod.rs: null
+        rate:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+        unrate:
+          dsl.rs: null
+          endpoint.rs: null
+          interpreter.rs: null
+          mod.rs: null
+      search:
+        dsl.rs: null
+        endpoint.rs: null
+        interpreter.rs: null
+        mod.rs: null
+  helper:
+    cache.rs: null
+    error.rs: null
+    middleware.rs: null
+    mod.rs: null
+    redis:
+      connection.rs: null
+      mod.rs: null
+      namespace.rs: null
+      namespaces.rs: null
+    scylla.rs: null
+    test.rs: null
+  lib.rs: null
+  main.rs: null
+  middlewares:
+    limit.rs: null
+    manage_session:
+      dsl:
+        authenticate.rs: null
+        extract_session_info.rs: null
+        manage_session.rs: null
+        mitigate_session_theft.rs: null
+        mod.rs: null
+        reauthenticate.rs: null
+        refresh_session_series.rs: null
+        update_refresh_token.rs: null
+        update_session.rs: null
+      interpreter:
+        authenticate.rs: null
+        mitigate_session_theft.rs: null
+        mod.rs: null
+        reauthenticate.rs: null
+        refresh_session_series.rs: null
+        update_refresh_token.rs: null
+        update_session.rs: null
+      middleware.rs: null
+      mod.rs: null
+    mod.rs: null
+    quota_limit:
+      dsl.rs: null
+      incr_and_expire_if_first.lua: null
+      interpreter.rs: null
+      middleware.rs: null
+      mod.rs: null
+    rate_limit:
+      dsl:
+        increment_rate.rs: null
+        mod.rs: null
+        rate_limit.rs: null
+        refresh_api_key.rs: null
+      interpreter:
+        incr_and_expire_if_first.lua: null
+        increment_rate.rs: null
+        mod.rs: null
+        rate_limit.rs: null
+        refresh_api_key.rs: null
+      middleware.rs: null
+      mod.rs: null
+    session.rs: null
+    start_session:
+      dsl:
+        assign_refresh_pair.rs: null
+        assign_session_id.rs: null
+        mod.rs: null
+        start_session.rs: null
+      interpreter:
+        assign_refresh_pair.rs: null
+        assign_session_id.rs: null
+        mod.rs: null
+      middleware.rs: null
+      mod.rs: null
+  startup:
+    mod.rs: null
+  translation:
+    ja.rs: null
+    mod.rs: null
+    us_en.rs: null
