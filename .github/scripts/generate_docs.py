@@ -255,6 +255,7 @@ COMPRESSOR_SYSTEM = (
 
 def ensure_output_dirs():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(os.path.join(OUTPUT_DIR, "src"), exist_ok=True)
 
 
 def write_file(path: str, content: str):
@@ -342,7 +343,7 @@ def ensure_mdbook_scaffold(domain: str, concept_files: list[tuple[str, str]]):
 
     各章は、該当概念に関する関連コードを解析し、非エンジニアにも読みやすい形でまとめています。
     """)
-    write_file(os.path.join(OUTPUT_DIR, "index.md"), index_md)
+    write_file(os.path.join(OUTPUT_DIR, "src", "index.md"), index_md)
 
     # book.toml（無ければ作成）
     book_toml_path = os.path.join(OUTPUT_DIR, "book.toml")
@@ -364,7 +365,7 @@ def ensure_mdbook_scaffold(domain: str, concept_files: list[tuple[str, str]]):
     lines = ["# Summary", "", "- [トップ](index.md)"]
     for title, filename in concept_files:
         lines.append(f"- [{title}]({filename})")
-    write_file(os.path.join(OUTPUT_DIR, "SUMMARY.md"), "\n".join(lines) + "\n")
+    write_file(os.path.join(OUTPUT_DIR, "src", "SUMMARY.md"), "\n".join(lines) + "\n")
 
 
 def main():
@@ -423,7 +424,7 @@ def main():
 
         # 保存
         slug = slugify(concept)
-        out_path = os.path.join(OUTPUT_DIR, f"{slug}.md")
+        out_path = os.path.join(OUTPUT_DIR, "src", f"{slug}.md")
         write_file(out_path, md)
         concept_files.append((concept, f"{slug}.md"))
         time.sleep(0.6)
@@ -438,4 +439,3 @@ if __name__ == "__main__":
     except Exception as e:
         print("[ERROR] 処理に失敗しました:", e, file=sys.stderr)
         sys.exit(1)
-        
