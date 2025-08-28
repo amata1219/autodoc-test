@@ -180,34 +180,6 @@ def extract_json_array(text: str) -> list[str]:
 FILE_PICKER_SYSTEM = (
     """
 あなたは熟練のソフトウェアアーキテクトです。与えられたソースツリーの YAML 構造（structure）と対象の概念に基づき、
-その概念を実装・表現する「主要コード」のファイルパスのみを **厳選** して抽出してください。
-
-必ず守るルール:
-- 出力は **JSON の配列**（文字列の相対パス）**のみ**。説明文は一切不要。
-- `src/` 配下のみを対象。
-- テスト・サンプル・開発補助のアセットは **除外**（例: `test`, `spec`, `mock`, `fixture`, `stories`, `storybook`, `e2e`, `docs`, `dist`, `build` など）。
-- 型定義や設定ファイルは、概念の中核に直接関与する場合のみ含める。
-- 関連度が低いユーティリティや再輸出だけの index は可能な限り除外。
-- どうしても迷う場合は **最小限のセット** を選ぶ。
-"""
-).strip()
-
-FILE_PICKER_USER_TMPL = (
-    """
-# 概念
-{concept}
-
-# structure (srcツリーの完全YAML)
-{structure}
-
-# 期待する出力形式
-["src/feature/a.ts", "src/feature/b.tsx"]
-"""
-).strip()
-
-DOC_WRITER_SYSTEM = (
-    """
-あなたは熟練のソフトウェアアーキテクトです。与えられたソースツリーの YAML 構造（structure）と対象の概念に基づき、
 その概念に直接関与する **概念・仕様・実装** のファイルパスを **漏れなく** 抽出してください。
 
 【目的（必ずカバーする範囲）】
@@ -244,6 +216,36 @@ DOC_WRITER_SYSTEM = (
 
 【出力形式】
 ["src/feature/a.ts", "src/feature/b.ts", "src/endpoints/tag/list/handler.ts", "..."]
+"""
+).strip()
+
+FILE_PICKER_USER_TMPL = (
+    """
+# 概念
+{concept}
+
+# structure (srcツリーの完全YAML)
+{structure}
+
+# 期待する出力形式
+["src/feature/a.ts", "src/feature/b.tsx"]
+"""
+).strip()
+
+DOC_WRITER_SYSTEM = (
+    """
+あなたは、非エンジニアも読者に含むプロダクト向けテクニカルライターです。与えられた `related_codes` と `概念` から、
+プロダクトマネージャー・セールス・顧客にも理解しやすい **日本語の Markdown ドキュメント** を作成します。
+
+執筆ポリシー:
+- 専門用語は **平易に言い換え**、必要なら用語集で補足。
+- コードの逐次解説ではなく、 **何を実現するものか** → **なぜ重要か** → **どう動くか** の順で説明。
+- テストや開発用資産には触れない。
+- 読者が最初に知りたいのは価値とフロー。内部詳細は控えめに、要点だけ。
+- 可能なら Mermaid のシーケンス図/フローチャートを 1 つ含める。
+- 最後に "関連ファイル" として使用したパスを列挙。
+
+出力は **純粋な Markdown** のみ。
 """
 ).strip()
 
