@@ -175,56 +175,30 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
-<h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>タグは、情報やデータを分類・整理するためのラベルです。このシステムでは、タグを用いて様々な情報を関連付け、効率的に管理することができます。</p>
-<h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>タグを使用することで、情報の検索や整理が容易になり、ユーザーは必要なデータに迅速にアクセスできるようになります。また、タグ間の関係性を定義することで、より複雑な情報の構造を理解しやすくなります。</p>
-<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
-<ol>
-<li><strong>タグの作成</strong>: ユーザーは新しいタグを作成し、特定の情報に関連付けます。</li>
-<li><strong>タグの関係性の定義</strong>: タグ同士の関係（包含関係や同値関係など）を定義します。</li>
-<li><strong>情報の検索</strong>: タグを使用して情報を検索し、必要なデータを取得します。</li>
-</ol>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant User
-    participant System
-    User-&gt;&gt;System: タグを作成
-    System-&gt;&gt;System: タグを保存
-    User-&gt;&gt;System: タグの関係性を定義
-    System-&gt;&gt;System: 関係性を保存
-    User-&gt;&gt;System: タグで情報を検索
-    System-&gt;&gt;User: 検索結果を返す
+                        <pre><code class="language-json">[
+    "src/common/tag/hierarchy.rs",
+    "src/common/tag/language_group.rs",
+    "src/common/tag/non_top_tag.rs",
+    "src/common/tag/proposal_operation.rs",
+    "src/common/tag/redis_tag_info.rs",
+    "src/common/tag/relation.rs",
+    "src/common/tag/tag_id.rs",
+    "src/common/tag/tag_info.rs",
+    "src/common/tag/tag_name.rs",
+    "src/common/tag/top_tag.rs",
+    "src/endpoints/tag/list/mod.rs",
+    "src/endpoints/tag/proposal/mod.rs",
+    "src/endpoints/tag/proposal/propose/dsl/mod.rs",
+    "src/endpoints/tag/proposal/propose/endpoint.rs",
+    "src/endpoints/tag/proposal/propose/interpreter/mod.rs",
+    "src/endpoints/tag/proposal/withdraw/mod.rs",
+    "src/endpoints/tag/rating/get/mod.rs",
+    "src/endpoints/tag/rating/rate/mod.rs",
+    "src/endpoints/tag/rating/unrate/mod.rs",
+    "src/endpoints/tag/search/mod.rs"
+]
 </code></pre>
-<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
-<ul>
-<li><strong>タグID</strong>: 各タグを一意に識別するためのID。</li>
-<li><strong>タグ名</strong>: タグの表示名。</li>
-<li><strong>タグ情報</strong>: タグに関連するメタデータ（例: 提案中かどうか、安定性など）。</li>
-<li><strong>タグ階層</strong>: タグ間の関係性を示す階層構造。</li>
-</ul>
-<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
-<ul>
-<li><strong>APIエンドポイント</strong>: タグの作成、関係性の定義、情報の検索を行うためのAPI。</li>
-<li><strong>データベース</strong>: タグ情報を保存するためのデータベース。</li>
-</ul>
-<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
-<ol>
-<li>ユーザーが「旅行」というタグを作成します。</li>
-<li>ユーザーは「旅行」タグを「日本旅行」と「海外旅行」というサブタグに分けます。</li>
-<li>ユーザーは「旅行」タグを使用して、関連する情報を検索し、必要なデータを取得します。</li>
-</ol>
-<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
-<ul>
-<li>タグ名は最大100文字までの制限があります。</li>
-<li>同じタグ間の関係を評価することはできません（例: 自分自身を上位タグとして定義することはできない）。</li>
-</ul>
-<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
-<ul>
-<li><strong>タグ</strong>: 情報を分類するためのラベル。</li>
-<li><strong>タグID</strong>: タグを一意に識別するための識別子。</li>
-<li><strong>階層</strong>: タグ間の関係性を示す構造。</li>
-</ul>
+<hr />
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
 <li><code>src/common/tag/mod.rs</code></li>
