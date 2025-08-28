@@ -127,7 +127,7 @@ def ext_to_lang(ext: str) -> str:
         ".py": "python", ".rb": "ruby", ".go": "go", ".rs": "rust", ".java": "java",
         ".kt": "kotlin", ".kts": "kotlin", ".scala": "scala", ".php": "php", ".cs": "csharp",
         ".cpp": "cpp", ".c": "c", ".hpp": "cpp", ".h": "c", ".swift": "swift", ".sql": "sql",
-        ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".ini": "ini",
+        ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".ini": "ini", ".env": "bash",
     }.get(ext.lower(), "")
 
 # -------------- OpenAI 呼び出し --------------
@@ -234,19 +234,27 @@ FILE_PICKER_USER_TMPL = (
 
 DOC_WRITER_SYSTEM = (
     """
-あなたは、非エンジニアも読者に含むプロダクト向けテクニカルライターです。与えられた `related_codes` と `概念` から、
-プロダクトマネージャー・セールス・顧客にも理解しやすい **日本語の Markdown ドキュメント** を作成します。
+あなたは、非エンジニアも読者に含むプロダクト向けテクニカルライターです。与えられた `related_codes` と `概念`、および `USED_PATHS` と `REPO_BASE_URL` から、
+プロダクトマネージャー・プロジェクトマネージャー・セールス・顧客・新規参加エンジニアにも理解しやすい **日本語の Markdown ドキュメント** を作成します。
+
+必須要件（厳守）:
+- **冒頭 1〜3 行**で、Wikipedia の冒頭のように「この概念が何か」を平易に要約する（比喩控えめ、主観なし）。
+- 続く本文は **分かりやすい段落構成** で、仕様・特徴・制約・注意点・コーナーケース・運用上の bad knowhow を **網羅的に** 記載する。長さ制限なし。
+- 各主張や仕様の根拠を、該当するソースファイルに対する **角括弧の番号注**（例: [1]）として文末に付与する。番号注は **ハイパーリンク** にし、
+  URL は `REPO_BASE_URL` + 相対パス（例: https://.../tree/main/src/...）を用いる。
+- すべての説明は **related_codes から直接読み取れる事実** のみ。推測・主観・仕様の創作は禁止。
+- 図は必要に応じて Mermaid を用いてよいが、**IT の前提知識がない読者にも通じる説明**（用語の言い換え・補足）を併記する。
+- ページ末尾に **「関連ファイル」** と **「根拠注釈」** を必ず含める。関連ファイルは `USED_PATHS` を **漏れなく** 列挙し、各項目に GitHub リンクも付ける。
+- 用語集では、本文の理解に必要な下位概念・関連概念を **簡潔で平易** に説明する（本文との関連性を明示）。
 
 執筆ポリシー:
 - 専門用語は **平易に言い換え**、必要なら用語集で補足。
 - コードの逐次解説ではなく、 **何を実現するものか** → **なぜ重要か** → **どう動くか** の順で説明。
 - テストや開発用資産には触れない。
-- 読者が最初に知りたいのは価値とフロー。**最初は**内部詳細は控えめに、要点だけ。
-- その後に、**ドメインにおける**詳細な説明を行う(ソースコードを上から下に順になぞる解説ではなく、その意味を解釈し明文化すべき仕様や制約、コーナーケースを言語化する)。
-- 可能なら Mermaid のシーケンス図/フローチャートを 1 つ含める。
-- 最後に "関連ファイル" として使用したパスを列挙。
+- 読者が最初に知りたいのは価値とフロー。内部詳細は控えめではなく、**実務上必要な限り具体的に** 記す（ただし主観は排す）。
+- 可能なら Mermaid 図を 1 つ含める（任意）。
 
-出力は **純粋な Markdown** のみ。
+出力は **純粋な Markdown** のみ。見出しや箇条書きを活用し、読みやすさを最優先にする。
 """
 ).strip()
 
@@ -258,17 +266,29 @@ DOC_WRITER_USER_TMPL = (
 # related_codes（ファイルごとにラベル済み）
 {related_codes}
 
+# USED_PATHS（関連ファイルの相対パス、漏れなくすべて）
+{used_paths}
+
+# REPO_BASE_URL（GitHub 上のベース URL。末尾に相対パスを連結して使う）
+{repo_base_url}
+
 # 期待する Markdown セクション例
 # {title}
+> ※最初に 1〜3 行でこの概念の平易な説明を書いてください。
+
 ## 概要
 ## なぜ重要か
-## 基本の流れ
-## 主要コンポーネント
-## 外部/内部インターフェース
-## 例（ユーザー視点のシナリオ）
-## 制約と既知の注意点
-## 用語集
-## 関連ファイル
+## 仕組みと基本の流れ
+## 仕様・特徴（詳細）
+### データ・状態・ルール
+### フローとアルゴリズム（必要なら Mermaid 図）
+### 例外・コーナーケース・既知の落とし穴
+### 制約・前提・非機能要件
+## 利用シナリオ（ユーザー視点）
+## 運用のヒント / ベストプラクティス（bad knowhow 可）
+## 用語集（本文と対応づけて）
+## 関連ファイル（USED_PATHS を全列挙。各項目に GitHub リンク併記）
+## 根拠注釈（本文に出てくる [1], [2], ... の定義。各番号を対応する GitHub リンクにする）
 """
 ).strip()
 
@@ -346,16 +366,32 @@ def compress_if_needed(related: str, concept: str) -> str:
 
 def generate_markdown(concept: str, related_codes_text: str, used_paths: list[str]) -> str:
     title = f"{concept}"
+    repo_base = os.environ.get("REPO_BASE_URL", "https://github.com/netmateapp/netmate-api/tree/main/")
+    used_paths_md = "\n".join([f"- {p}" for p in used_paths]) if used_paths else "- (なし)"
+
     uprompt = DOC_WRITER_USER_TMPL.format(
         concept=concept,
         related_codes=related_codes_text,
+        used_paths=used_paths_md,
+        repo_base_url=repo_base,
         title=title,
     )
     md = call_chat(MODEL_DOCS, DOC_WRITER_SYSTEM, uprompt, temperature=0.25)
-    # 関連ファイル追記（念のため）
-    tail = "\n\n---\n## 関連ファイル\n" + "\n".join([f"- `{p}`" for p in used_paths]) + "\n"
+
+    # セーフティ: 関連ファイルを必ず完全列挙（GitHub リンク付き）
     if "## 関連ファイル" not in md:
+        links = [f"- `{p}` — [{p}]({repo_base}{p})" for p in used_paths]
+        tail = "\n"
+
+        tail = f"\n## 関連ファイル\n{'\n'.join(links) if links else '- (なし)'}"
         md = md.rstrip() + tail
+
+    # セーフティ: 根拠注釈が無ければ最低限の一覧を追加
+    if "## 根拠注釈" not in md:
+        refs = [f"[{i+1}]: {repo_base}{p}" for i, p in enumerate(used_paths)]
+        tail2 = f"\n## 根拠注釈\n{'\n'.join(refs) if refs else '(該当なし)'}"
+        md += tail2
+
     return md
 
 
@@ -393,7 +429,7 @@ def ensure_mdbook_scaffold(domain: str, concept_files: list[tuple[str, str]]):
     lines = ["# Summary", "", "- [トップ](index.md)"]
     for title, filename in concept_files:
         lines.append(f"- [{title}]({filename})")
-    write_file(os.path.join(OUTPUT_DIR, "src", "SUMMARY.md"), "\n".join(lines) + "\n")
+    write_file(os.path.join(OUTPUT_DIR, "src", "SUMMARY.md"), "\n".join(lines))
 
 
 def main():
