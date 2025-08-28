@@ -127,7 +127,7 @@ def ext_to_lang(ext: str) -> str:
         ".py": "python", ".rb": "ruby", ".go": "go", ".rs": "rust", ".java": "java",
         ".kt": "kotlin", ".kts": "kotlin", ".scala": "scala", ".php": "php", ".cs": "csharp",
         ".cpp": "cpp", ".c": "c", ".hpp": "cpp", ".h": "c", ".swift": "swift", ".sql": "sql",
-        ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".ini": "ini", ".env": "bash",
+        ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".ini": "ini",
     }.get(ext.lower(), "")
 
 # -------------- OpenAI 呼び出し --------------
