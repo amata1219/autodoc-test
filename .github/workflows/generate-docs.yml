@@ -19,17 +19,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Ensure OPENAI_API_KEY is set
+      # デバッグ: 依存ファイルやスクリプトが見えているか確認
+      - name: Show workspace
         run: |
-          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
-            echo "OPENAI_API_KEY is not set in repo secrets."
-            exit 1
-          fi
+          pwd
+          ls -la
+          ls -la .github || true
+          ls -la .github/scripts || true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          # ここに cache や cache-dependency-path を書かない！
 
       - name: Install dependencies
         run: |
