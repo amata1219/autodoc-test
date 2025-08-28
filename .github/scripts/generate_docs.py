@@ -1,7 +1,7 @@
 import os
 import math
 from pathlib import Path
-from typing import Iterable, List, Tuple, Dict, Optional
+from typing import Iterable, List, Tuple, Dict
 
 import tiktoken
 from openai import OpenAI
@@ -14,7 +14,11 @@ except ModuleNotFoundError:
 # ========= 設定 =========
 INCLUDE_EXTS = {".rs"}
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-SYSTEM_PROMPT = "You are a helpful assistant that writes clear documentation."
+SYSTEM_PROMPT = (
+    "You are a senior software architecture analyst and documentation specialist. "
+    "You infer house coding conventions, architectural patterns, and design tendencies from source code, "
+    "and you write clear, actionable Japanese documentation for engineers."
+)
 MAX_TOKENS_CONTEXT = 12000
 
 # ディレクトリツリー生成の設定
@@ -189,14 +193,38 @@ def collect_blocks(repo_root: Path) -> Tuple[List[Tuple[str, str]], Dict[str, st
         if cargo_txt:
             cargo_texts[str(crate)] = cargo_txt
 
+        # src/ 配下（bin/も含む）
         src_dir = crate / "src"
-        if not src_dir.exists():
+        if src_dir.exists():
+            files = sorted(iter_source_files(src_dir, INCLUDE_EXTS))
+        else:
+            files = []
             print(f"  - {crate} (no src/ found)")
-            continue
 
-        files = sorted(iter_source_files(src_dir, INCLUDE_EXTS))
-        print(f"  - {crate} : {len(files)} source files")
+        # build.rs
+        build_rs = crate / "build.rs"
+        if build_rs.exists():
+            files.append(build_rs)
+
+        # examples/, tests/, benches/ も解析対象に追加
+        for extra in ("examples", "tests", "benches"):
+            extra_dir = crate / extra
+            if extra_dir.exists():
+                files.extend(sorted(iter_source_files(extra_dir, INCLUDE_EXTS)))
+
+        unique_files = []
+        seen = set()
         for f in files:
+            try:
+                key = f.resolve()
+            except Exception:
+                key = f
+            if key not in seen:
+                unique_files.append(f)
+                seen.add(key)
+
+        print(f"  - {crate} : {len(unique_files)} source files (including examples/tests/benches/build.rs)")
+        for f in unique_files:
             content = read_text_file(f)
             if not content.strip():
                 continue
@@ -243,13 +271,43 @@ def chunk_blocks(blocks: List[Tuple[str, str]], max_tokens: int) -> List[str]:
 
 # ---------- OpenAI 呼び出し ----------
 def summarize_chunk(client: OpenAI, chunk: str) -> str:
+    # コーディング規約・設計傾向の推定を強化したプロンプト
     prompt = f"""
-次のコード断片から、README作成に役立つ要点を日本語で整理してください。
-- 役割・エントリポイント・公開API・設定・重要関数/モジュール
-- 実行フローや使用例
+次のコード断片を精読し、README作成に直結する分析を**日本語**で出力してください。
+目的: ソースから推定される「独自のコーディング規約」および「アーキテクチャ設計の傾向」を抽出します。
+
+[1] 要点サマリ（簡潔）
+- 役割/責務、公開API・エントリポイント、設定/重要関数・モジュール
+- 実行フロー/使用例（あれば）
 - 注意点/制約
 - 依存クレートの示唆（あれば）
-形式: 箇条書き中心、引用は20行以内。
+
+[2] 推定される独自のコーディング規約（可能な限り）
+各規約を次の形式で列挙:
+- 規約: <短い見出し>
+  説明: <何を/なぜ>
+  根拠: <ファイルパス> からの短い引用(<=80字) を最大3件
+  例外/補足: <該当すれば>
+  確信度: 1-5
+
+（例: 命名・モジュール分割・結果型/エラー処理・所有権/ライフタイム方針・unsafeの可否・非同期/並行・テスト記述・ドキュメンテーションコメント・フォーマッタ/Clippyに従う癖 など）
+
+[3] アーキテクチャ設計の傾向（可能な限り）
+- レイヤ/境界（例: domain/application/infrastructure, hexagonal 等）
+- 依存方向/モジュール結合の強さ
+- 状態管理/不変性の扱い
+- エラーハンドリング戦略（Result/thiserror/anyhow 等）
+- 非同期/並行（tokio/async-std, send+syncの扱い）
+- 型設計/所有権の戦略（newtype/phantom/traitでの抽象化 等）
+- テスト戦略（単体/統合/fixtures/プロパティテスト等）
+- パフォーマンス/安全性の方針（unsafe/アロケーション削減/キャッシュ 等）
+- 採用パターン（DDD/イベント駆動/DI/プラグイン/ECS/状態遷移 など）
+必要に応じて各項目に根拠（ファイルパス + 短い引用）と確信度(1-5)を併記。
+
+出力ルール:
+- 箇条書き中心。引用は20行以内、1項目で最大3件まで。
+- 断片以外の推測は書かない。言い切れない場合は仮説として明記。
+- 断片先頭に含まれる「# <ファイルパス>」見出しのパスを根拠に用いて良い。
 
 === 断片開始 ===
 {chunk}
@@ -277,13 +335,15 @@ def generate_readme(client: OpenAI, notes: str, cargo_map: Dict[str, str]) -> st
     cargo_blob = "\n\n".join(cargo_sections)
 
     user_prompt = f"""
-あなたは優れた技術ドキュメントの専門家です。
-以下の「要点ノート」と Cargo.toml を基に、**日本語で分かりやすく詳細な README.md** を生成してください。
+あなたは優れた**ソフトウェアアーキテクト兼テクニカルライター**です。
+以下の「要点ノート」と Cargo.toml を統合し、**日本語で分かりやすく詳細な README.md** を生成してください。
+特に「ソースコードから推定される独自のコーディング規約・アーキテクチャ設計の傾向」を整理して明示します。
 
 ### 厳守事項
-- ディレクトリ構成は LLM で生成しないでください。README 内にすでに用意された「## ディレクトリ構成」セクションのプレースホルダ `<!-- DIR_TREE -->` をそのまま残してください（削除や改変をしないこと）。
-- それ以外のセクション（概要/セットアップ/ライブラリ/実装のポイント/TODO 等）を作成してください。
-- コード引用は20行以内にとどめる
+- **ディレクトリ構成は LLM で生成しない。** README 内の「## ディレクトリ構成」のプレースホルダ `<!-- DIR_TREE -->` をそのまま残すこと（削除・改変禁止）。
+- その他のセクション（概要/セットアップ/ライブラリ/規約/設計/実装のポイント/TODO 等）を作成する。
+- コード引用は20行以内に収める。
+- 断片ごとの仮説は**本文では統合**し、重複は解消。確信度が低い推測は「仮説」と注記。
 
 ### 対象読者
 - Rust の基本知識を持つエンジニア
@@ -295,6 +355,12 @@ def generate_readme(client: OpenAI, notes: str, cargo_map: Dict[str, str]) -> st
 <!-- DIR_TREE -->
 ## セットアップ
 ## 使用技術・主要ライブラリ
+## 推定されるコーディング規約
+- 命名/整形/モジュール分割/エラー処理/非同期/所有権/テスト/ドキュメント/CIに関する方針などを箇条書き
+- 各項目に簡潔な根拠（ファイルパス）と確信度(1-5)を可能な範囲で付与
+## アーキテクチャ設計の傾向
+- レイヤ/依存方向/境界/抽象化/状態管理/パターン等を要約
+- 必要に応じて図示風の箇条書き（テキストのみ）と根拠・確信度
 ## 実装のポイント
 ## 今後の課題 / TODO
 
@@ -327,7 +393,7 @@ def main():
         raise SystemExit(
             "No source files found. "
             "Tips: This script scans all crates detected by Cargo.toml with [package]. "
-            "Ensure your Rust crate(s) live under <crate>/src/*.rs"
+            "Ensure your Rust crate(s) live under <crate>/(src|examples|tests|benches)/*.rs or build.rs"
         )
 
     print(f"Total files considered: {len(blocks)}")
