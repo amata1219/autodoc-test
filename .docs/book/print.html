@@ -179,199 +179,251 @@
                         <h1 id="新しいソーシャルネットワークサービス-netmate"><a class="header" href="#新しいソーシャルネットワークサービス-netmate">新しいソーシャルネットワークサービス Netmate</a></h1>
 <p>このサイトはソースコード（Single Source of Truth）から自動生成された、主要概念の読み物です。</p>
 <ul>
-<li>生成日時: 2025-08-28 14:45:56 UTC</li>
+<li>生成日時: 2025-08-28 17:29:23 UTC</li>
 <li>対象ディレクトリ: <code>src</code></li>
 </ul>
 <p>各章は、該当概念に関する関連コードを解析し、非エンジニアにも読みやすい形でまとめています。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
+<p>タグは、情報やデータを分類・整理するためのラベルです。特に、関連性のある情報をグループ化し、検索やフィルタリングを容易にするために使用されます。</p>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>タグは、情報を分類・整理するためのラベルです。特に、コンテンツやデータを特定のカテゴリに関連付ける際に使用されます。タグは、ユーザーが情報を見つけやすくし、関連するコンテンツを簡単に探索できるようにするための重要な要素です。</p>
+<p>タグは、特定のコンテンツやデータに対して付与されるラベルであり、情報の整理や検索を効率化します。タグは、階層的な関係を持つことができ、上位タグや下位タグとの関連性を示すことができます。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>タグを使用することで、情報の整理が容易になり、ユーザーは自分の興味に合ったコンテンツを迅速に見つけることができます。また、タグはデータの関連性を示すため、分析やレポート作成の際にも役立ちます。特に、異なるタグ間の関係を理解することは、情報の相互作用を把握する上で重要です。</p>
-<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
-<ol>
-<li><strong>タグの作成</strong>: ユーザーやシステムが新しいタグを作成します。</li>
-<li><strong>タグの関連付け</strong>: 作成したタグを特定のコンテンツやデータに関連付けます。</li>
-<li><strong>タグの検索</strong>: ユーザーがタグを使用して関連するコンテンツを検索します。</li>
-<li><strong>タグの管理</strong>: タグの編集や削除を行い、タグの整合性を保ちます。</li>
-</ol>
-<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
+<p>タグを使用することで、情報の整理が容易になり、ユーザーが必要な情報を迅速に見つけることができます。また、タグの階層構造により、関連情報を視覚的に把握しやすくなります。</p>
+<h2 id="仕組みと基本の流れ"><a class="header" href="#仕組みと基本の流れ">仕組みと基本の流れ</a></h2>
+<p>タグは、特定のデータに関連付けられ、階層的な関係を持つことができます。タグの関係は、上位タグ、同値タグ、下位タグとして分類されます。これにより、情報の関連性を明確にし、ユーザーが情報を効率的に検索できるようにします。</p>
+<h2 id="仕様特徴詳細"><a class="header" href="#仕様特徴詳細">仕様・特徴（詳細）</a></h2>
+<h3 id="データ状態ルール"><a class="header" href="#データ状態ルール">データ・状態・ルール</a></h3>
 <ul>
-<li><strong>タグ階層</strong>: タグ間の関係を示すための構造。上位タグ、同値タグ、下位タグの関係を持つ。</li>
-<li><strong>言語グループ</strong>: タグが関連する言語を示すグループ。日本語、英語、韓国語など。</li>
-<li><strong>提案操作</strong>: タグ関係に対する提案を管理するための機能。</li>
+<li>タグは、<code>TagId</code>、<code>TagName</code>、<code>TagHierarchy</code>などのデータ構造を持ちます。</li>
+<li>タグは、上位タグ、同値タグ、下位タグの関係を持つことができます。</li>
+<li>タグの階層は、<code>TagHierarchy</code>列挙型で定義され、上位（Super）、同値（Equivalent）、下位（Sub）の3つの状態があります<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/hierarchy.rs">1</a>。</li>
 </ul>
-<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
+<h3 id="フローとアルゴリズム必要なら-mermaid-図"><a class="header" href="#フローとアルゴリズム必要なら-mermaid-図">フローとアルゴリズム（必要なら Mermaid 図）</a></h3>
+<pre><code class="language-mermaid">graph TD;
+    A[タグ] --&gt;|上位| B[上位タグ]
+    A --&gt;|同値| C[同値タグ]
+    A --&gt;|下位| D[下位タグ]
+</code></pre>
+<p>この図は、タグが持つ階層的な関係を示しています。</p>
+<h3 id="例外コーナーケース既知の落とし穴"><a class="header" href="#例外コーナーケース既知の落とし穴">例外・コーナーケース・既知の落とし穴</a></h3>
 <ul>
-<li><strong>APIエンドポイント</strong>: タグの作成、取得、更新、削除を行うためのRESTful API。</li>
-<li><strong>データベースインターフェース</strong>: タグ情報を保存・取得するためのデータベースとのインターフェース。</li>
+<li>同じタグ間の関係を評価することはできません。これは、<code>validate_tag_relation</code>関数によって制御されています<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/relation.rs">2</a>。</li>
+<li>同値関係では、下位タグのIDが上位タグのIDより小さくなければなりません。</li>
 </ul>
-<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
-<ol>
-<li>ユーザーが「旅行」というタグを作成します。</li>
-<li>ユーザーは「旅行」に関連する記事や写真にこのタグを付けます。</li>
-<li>他のユーザーが「旅行」タグを検索し、関連するコンテンツを見つけます。</li>
-<li>ユーザーは、特定の旅行に関する提案を行い、他のユーザーと情報を共有します。</li>
-</ol>
-<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
+<h3 id="制約前提非機能要件"><a class="header" href="#制約前提非機能要件">制約・前提・非機能要件</a></h3>
 <ul>
-<li>タグ名は特定の文字数制限があり、長すぎるタグ名は受け付けられません。</li>
-<li>タグの階層関係が正しく設定されていない場合、検索結果が不正確になる可能性があります。</li>
-<li>タグの削除は、関連するコンテンツに影響を与えるため、慎重に行う必要があります。</li>
+<li>タグ名は、最大100文字の制限があります<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/tag_name.rs">3</a>。</li>
+<li>タグは、特定の言語グループに関連付けられます。</li>
 </ul>
-<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<h2 id="利用シナリオユーザー視点"><a class="header" href="#利用シナリオユーザー視点">利用シナリオ（ユーザー視点）</a></h2>
+<p>ユーザーは、特定の情報を検索する際にタグを利用します。例えば、特定の言語に関連する情報を検索する場合、ユーザーはその言語に関連付けられたタグを使用して、情報を迅速に見つけることができます。</p>
+<h2 id="運用のヒント--ベストプラクティスbad-knowhow-可"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
 <ul>
-<li><strong>タグ</strong>: コンテンツを分類するためのラベル。</li>
-<li><strong>階層</strong>: タグ間の関係を示す構造。</li>
-<li><strong>言語グループ</strong>: タグが関連する言語のカテゴリ。</li>
-<li><strong>提案操作</strong>: タグ関係に対する提案を管理する機能。</li>
+<li>タグの階層構造を適切に設計することで、情報の検索効率を向上させることができます。</li>
+<li>タグの命名規則を統一することで、ユーザーがタグを理解しやすくなります。</li>
+</ul>
+<h2 id="用語集本文と対応づけて"><a class="header" href="#用語集本文と対応づけて">用語集（本文と対応づけて）</a></h2>
+<ul>
+<li><strong>タグ</strong>: 情報を分類するためのラベル。</li>
+<li><strong>上位タグ</strong>: 他のタグを包含するタグ。</li>
+<li><strong>下位タグ</strong>: 他のタグに包含されるタグ。</li>
+<li><strong>同値タグ</strong>: 同じ意味を持つタグ。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/tag/hierarchy.rs</code></li>
-<li><code>src/common/tag/language_group.rs</code></li>
-<li><code>src/common/tag/non_top_tag.rs</code></li>
-<li><code>src/common/tag/relation.rs</code></li>
-<li><code>src/endpoints/tag/list/dsl.rs</code></li>
-<li><code>src/endpoints/tag/rating/get/dsl.rs</code></li>
-<li><code>src/endpoints/tag/search/dsl.rs</code></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/hierarchy.rs">src/common/tag/hierarchy.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/language_group.rs">src/common/tag/language_group.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/mod.rs">src/common/tag/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/non_top_tag.rs">src/common/tag/non_top_tag.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/proposal_operation.rs">src/common/tag/proposal_operation.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/redis_tag_info.rs">src/common/tag/redis_tag_info.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/relation.rs">src/common/tag/relation.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/tag_id.rs">src/common/tag/tag_id.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/tag_info.rs">src/common/tag/tag_info.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/tag_name.rs">src/common/tag/tag_name.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/top_tag.rs">src/common/tag/top_tag.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/dsl.rs">src/endpoints/tag/list/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/endpoint.rs">src/endpoints/tag/list/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/interpreter.rs">src/endpoints/tag/list/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/mod.rs">src/endpoints/tag/list/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/mod.rs">src/endpoints/tag/proposal/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/dsl.rs">src/endpoints/tag/rating/get/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/endpoint.rs">src/endpoints/tag/rating/get/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/interpreter.rs">src/endpoints/tag/rating/get/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/mod.rs">src/endpoints/tag/rating/get/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/rate/dsl.rs">src/endpoints/tag/rating/rate/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/rate/endpoint.rs">src/endpoints/tag/rating/rate/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/rate/interpreter.rs">src/endpoints/tag/rating/rate/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/rate/mod.rs">src/endpoints/tag/rating/rate/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/unrate/dsl.rs">src/endpoints/tag/rating/unrate/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/unrate/endpoint.rs">src/endpoints/tag/rating/unrate/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/unrate/interpreter.rs">src/endpoints/tag/rating/unrate/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/unrate/mod.rs">src/endpoints/tag/rating/unrate/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/dsl.rs">src/endpoints/tag/search/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/endpoint.rs">src/endpoints/tag/search/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/interpreter.rs">src/endpoints/tag/search/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/mod.rs">src/endpoints/tag/search/mod.rs</a></li>
 </ul>
+<h2 id="根拠注釈"><a class="header" href="#根拠注釈">根拠注釈</a></h2>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
+<p>ハンドルネームは、ユーザーがオンラインでの活動やコミュニケーションに使用する仮名です。この名前は、個人の特定を避けつつ、他者とのやり取りを可能にします。</p>
 <h2 id="概要-1"><a class="header" href="#概要-1">概要</a></h2>
-<p>ハンドルネームは、ユーザーがオンラインでのアイデンティティを表現するための名前です。このシステムでは、ハンドルネームを作成、取得、更新、削除するための一連の機能を提供します。</p>
+<p>ハンドルネームは、特にソーシャルメディアやオンラインフォーラムで使用されることが多く、ユーザーが匿名性を保ちながら自己表現を行う手段となります。このシステムでは、ハンドルネームを管理するためのデータ構造や操作が定義されています。</p>
 <h2 id="なぜ重要か-1"><a class="header" href="#なぜ重要か-1">なぜ重要か</a></h2>
-<p>ハンドルネームは、ユーザーが他のユーザーと区別されるための重要な要素です。適切なハンドルネームを持つことで、ユーザーは自分の個性を表現し、コミュニティ内での認知度を高めることができます。また、ハンドルネームの管理は、ユーザーエクスペリエンスの向上に寄与します。</p>
-<h2 id="基本の流れ-1"><a class="header" href="#基本の流れ-1">基本の流れ</a></h2>
+<p>ハンドルネームは、ユーザーが自分のアイデンティティを自由に表現できる場を提供します。また、個人情報を保護しつつ、コミュニティ内での交流を促進する役割も果たします。適切なハンドルネームの管理は、ユーザーエクスペリエンスを向上させるために不可欠です。</p>
+<h2 id="仕組みと基本の流れ-1"><a class="header" href="#仕組みと基本の流れ-1">仕組みと基本の流れ</a></h2>
+<p>ハンドルネームは、ユーザーアカウントに関連付けられ、データベースに保存されます。ユーザーは新しいハンドルネームを作成したり、既存のものを変更したりできます。これらの操作は、APIを通じて行われ、データベースに対するCRUD（作成、読み取り、更新、削除）操作が実行されます。</p>
+<h3 id="データ状態ルール-1"><a class="header" href="#データ状態ルール-1">データ・状態・ルール</a></h3>
+<ul>
+<li><strong>ハンドルネーム</strong>: ユーザーが設定する名前。最大文字数は100文字で、特定の文字コスト制限があります<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">1</a>。</li>
+<li><strong>ハンドルID</strong>: 各ハンドルネームに関連付けられた一意の識別子。UUID形式で生成されます<a href="%5Bsrc/common/handle/id.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/id.rs)">2</a>。</li>
+<li><strong>共有数</strong>: 各ハンドルネームが他のユーザーにどれだけ共有されているかを示す数値です<a href="%5Bsrc/common/handle/share_count.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/share_count.rs)">3</a>。</li>
+</ul>
+<h3 id="フローとアルゴリズム必要なら-mermaid-図-1"><a class="header" href="#フローとアルゴリズム必要なら-mermaid-図-1">フローとアルゴリズム（必要なら Mermaid 図）</a></h3>
+<p>以下は、ハンドルネームの作成から取得までの基本的なフローを示します。</p>
+<pre><code class="language-mermaid">graph TD;
+    A[ユーザーがハンドルネームを作成] --&gt; B{ハンドルネームの検証};
+    B -- 成功 --&gt; C[データベースに保存];
+    B -- 失敗 --&gt; D[エラーメッセージを表示];
+    C --&gt; E[ハンドルネームの取得];
+    E --&gt; F[ユーザーに表示];
+</code></pre>
+<h3 id="例外コーナーケース既知の落とし穴-1"><a class="header" href="#例外コーナーケース既知の落とし穴-1">例外・コーナーケース・既知の落とし穴</a></h3>
+<ul>
+<li>ハンドルネームが空の場合や、文字数が制限を超える場合はエラーが発生します<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">4</a>。</li>
+<li>匿名名義（空のハンドルネーム）は削除できないため、注意が必要です<a href="%5Bsrc/endpoints/handle/delete/dsl.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/dsl.rs)">5</a>。</li>
+</ul>
+<h3 id="制約前提非機能要件-1"><a class="header" href="#制約前提非機能要件-1">制約・前提・非機能要件</a></h3>
+<ul>
+<li>ハンドルネームは最大100文字で、特定の文字コストを超えてはいけません<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">1</a>。</li>
+<li>データベースの操作は非同期で行われ、エラーハンドリングが必要です<a href="%5Bsrc/endpoints/handle/create/interpreter.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/interpreter.rs)">6</a>。</li>
+</ul>
+<h2 id="利用シナリオユーザー視点-1"><a class="header" href="#利用シナリオユーザー視点-1">利用シナリオ（ユーザー視点）</a></h2>
 <ol>
-<li><strong>ハンドルネームの作成</strong>: ユーザーが新しいハンドルネームを作成します。</li>
-<li><strong>ハンドルネームの取得</strong>: ユーザーが自分のハンドルネームを取得します。</li>
-<li><strong>ハンドルネームの更新</strong>: ユーザーが既存のハンドルネームを変更します。</li>
-<li><strong>ハンドルネームの削除</strong>: ユーザーがハンドルネームを削除します。</li>
+<li>ユーザーが新しいアカウントを作成する際に、ハンドルネームを設定します。</li>
+<li>既存のハンドルネームを変更したい場合、ユーザーは新しい名前を入力し、システムがそれを検証します。</li>
+<li>ユーザーは自分のハンドルネームを使用して、他のユーザーと交流します。</li>
 </ol>
-<h2 id="主要コンポーネント-1"><a class="header" href="#主要コンポーネント-1">主要コンポーネント</a></h2>
+<h2 id="運用のヒント--ベストプラクティスbad-knowhow-可-1"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可-1">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
 <ul>
-<li><strong>HandleId</strong>: 各ハンドルネームに一意の識別子を付与します。</li>
-<li><strong>HandleName</strong>: ハンドルネームの文字列を管理し、文字数制限や有効性をチェックします。</li>
-<li><strong>HandleShareCount</strong>: ハンドルネームの共有数を管理します。</li>
+<li>ハンドルネームの変更は、ユーザーが混乱しないように慎重に行うべきです。変更履歴を保持することが推奨されます。</li>
+<li>ユーザーに対して、ハンドルネームの選択に関するガイドラインを提供することで、適切な名前を選ぶ手助けをします。</li>
 </ul>
-<h2 id="外部内部インターフェース-1"><a class="header" href="#外部内部インターフェース-1">外部/内部インターフェース</a></h2>
+<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
 <ul>
-<li><strong>APIエンドポイント</strong>:
-<ul>
-<li><code>/handles</code> (POST): 新しいハンドルネームを作成</li>
-<li><code>/handles</code> (GET): ユーザーのハンドルネームを取得</li>
-<li><code>/handles</code> (PATCH): ハンドルネームを更新</li>
-<li><code>/handles/:id</code> (POST): ハンドルネームを削除</li>
-</ul>
-</li>
-</ul>
-<h2 id="例ユーザー視点のシナリオ-1"><a class="header" href="#例ユーザー視点のシナリオ-1">例（ユーザー視点のシナリオ）</a></h2>
-<ol>
-<li>ユーザーが「CoolGamer」というハンドルネームを作成します。</li>
-<li>ユーザーが自分のハンドルネームを取得し、「CoolGamer」と表示されます。</li>
-<li>ユーザーが「CoolGamer」を「AwesomeGamer」に変更します。</li>
-<li>ユーザーが「AwesomeGamer」を削除します。</li>
-</ol>
-<h2 id="制約と既知の注意点-1"><a class="header" href="#制約と既知の注意点-1">制約と既知の注意点</a></h2>
-<ul>
-<li>ハンドルネームは最大100文字までとし、特定の文字コストを超えることはできません。</li>
-<li>空のハンドルネームは許可されていません。</li>
-<li>匿名のハンドルネームは削除できません。</li>
-</ul>
-<h2 id="用語集-1"><a class="header" href="#用語集-1">用語集</a></h2>
-<ul>
-<li><strong>ハンドルネーム</strong>: ユーザーがオンラインで使用する名前。</li>
-<li><strong>HandleId</strong>: ハンドルネームに関連付けられた一意の識別子。</li>
-<li><strong>HandleShareCount</strong>: ハンドルネームの共有数を示す値。</li>
+<li><strong>ハンドルネーム</strong>: オンラインでのユーザーの仮名。</li>
+<li><strong>ハンドルID</strong>: ハンドルネームに関連付けられた一意の識別子。</li>
+<li><strong>共有数</strong>: ハンドルネームが他のユーザーにどれだけ共有されているかを示す数値。</li>
 </ul>
 <h2 id="関連ファイル-1"><a class="header" href="#関連ファイル-1">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/handle/id.rs</code></li>
-<li><code>src/common/handle/name.rs</code></li>
-<li><code>src/common/handle/share_count.rs</code></li>
-<li><code>src/endpoints/handle/count/dsl.rs</code></li>
-<li><code>src/endpoints/handle/count/endpoint.rs</code></li>
-<li><code>src/endpoints/handle/create/dsl.rs</code></li>
-<li><code>src/endpoints/handle/create/endpoint.rs</code></li>
-<li><code>src/endpoints/handle/delete/dsl.rs</code></li>
-<li><code>src/endpoints/handle/delete/endpoint.rs</code></li>
-<li><code>src/endpoints/handle/list/dsl.rs</code></li>
-<li><code>src/endpoints/handle/list/endpoint.rs</code></li>
-<li><code>src/endpoints/handle/rename/dsl.rs</code></li>
-<li><code>src/endpoints/handle/rename/endpoint.rs</code></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/id.rs">src/common/handle/id.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs">src/common/handle/name.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/share_count.rs">src/common/handle/share_count.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/count/dsl.rs">src/endpoints/handle/count/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/count/endpoint.rs">src/endpoints/handle/count/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/count/interpreter.rs">src/endpoints/handle/count/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/count/mod.rs">src/endpoints/handle/count/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/dsl.rs">src/endpoints/handle/create/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/endpoint.rs">src/endpoints/handle/create/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/interpreter.rs">src/endpoints/handle/create/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/mod.rs">src/endpoints/handle/create/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/dsl.rs">src/endpoints/handle/delete/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/endpoint.rs">src/endpoints/handle/delete/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/interpreter.rs">src/endpoints/handle/delete/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/mod.rs">src/endpoints/handle/delete/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/list/dsl.rs">src/endpoints/handle/list/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/list/endpoint.rs">src/endpoints/handle/list/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/list/interpreter.rs">src/endpoints/handle/list/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/list/mod.rs">src/endpoints/handle/list/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/rename/dsl.rs">src/endpoints/handle/rename/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/rename/endpoint.rs">src/endpoints/handle/rename/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/rename/interpreter.rs">src/endpoints/handle/rename/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/rename/mod.rs">src/endpoints/handle/rename/mod.rs</a></li>
 </ul>
+<h2 id="根拠注釈-1"><a class="header" href="#根拠注釈-1">根拠注釈</a></h2>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="セッション管理"><a class="header" href="#セッション管理">セッション管理</a></h1>
+<p>セッション管理は、ユーザーがアプリケーションにログインしている間の状態を保持し、ユーザーの操作を追跡するための仕組みです。これにより、ユーザーはアプリケーションを利用する際に、再度ログインすることなくスムーズに操作を続けることができます。</p>
 <h2 id="概要-2"><a class="header" href="#概要-2">概要</a></h2>
-<p>セッション管理は、ユーザーのログイン状態やその関連情報を保持し、適切に管理するための仕組みです。これにより、ユーザーはアプリケーションを利用する際に、毎回ログイン情報を入力する必要がなくなります。</p>
+<p>セッション管理は、ユーザーの認証情報や状態を保持するために、セッションIDやリフレッシュトークンを使用します。これにより、ユーザーは一度ログインすれば、一定の時間内は再度認証を求められることなくサービスを利用できます。</p>
 <h2 id="なぜ重要か-2"><a class="header" href="#なぜ重要か-2">なぜ重要か</a></h2>
-<p>セッション管理は、ユーザーエクスペリエンスを向上させるだけでなく、セキュリティの観点からも重要です。適切なセッション管理により、ユーザーの情報を保護し、不正アクセスを防ぐことができます。</p>
-<h2 id="基本の流れ-2"><a class="header" href="#基本の流れ-2">基本の流れ</a></h2>
+<p>セッション管理は、ユーザーエクスペリエンスの向上に寄与します。適切に管理されたセッションは、ユーザーがアプリケーションを快適に利用できるようにし、セキュリティを確保するためにも重要です。特に、セッションの有効期限やリフレッシュトークンの管理は、セキュリティリスクを低減するために不可欠です。</p>
+<h2 id="仕組みと基本の流れ-2"><a class="header" href="#仕組みと基本の流れ-2">仕組みと基本の流れ</a></h2>
 <ol>
-<li><strong>ユーザーがログイン</strong>: ユーザーがログインすると、セッションが開始されます。</li>
-<li><strong>セッションIDの生成</strong>: サーバーは一意のセッションIDを生成し、ユーザーに関連付けます。</li>
-<li><strong>クッキーの設定</strong>: セッションIDはクッキーに保存され、ブラウザに送信されます。</li>
-<li><strong>リクエストの処理</strong>: ユーザーがアプリケーションを利用する際、クッキーからセッションIDを取得し、サーバーで認証を行います。</li>
-<li><strong>セッションの更新</strong>: 一定の時間が経過する前に、セッションを更新することで、ユーザーのログイン状態を維持します。</li>
+<li><strong>ログイン</strong>: ユーザーがログインすると、サーバーはセッションIDとリフレッシュトークンを生成します。</li>
+<li><strong>クッキーの設定</strong>: 生成されたセッションIDとリフレッシュトークンは、クッキーとしてブラウザに保存されます。</li>
+<li><strong>セッションの維持</strong>: ユーザーがアプリケーションを利用する際、サーバーはクッキーからセッションIDを取得し、ユーザーの状態を確認します。</li>
+<li><strong>セッションの更新</strong>: 一定の時間が経過すると、リフレッシュトークンを使用して新しいセッションIDを発行し、クッキーを更新します。</li>
+<li><strong>ログアウト</strong>: ユーザーがログアウトすると、クッキーは削除され、セッションは終了します。</li>
 </ol>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant User
-    participant Server
-    User-&gt;&gt;Server: ログインリクエスト
-    Server--&gt;&gt;User: セッションIDを含むクッキー
-    User-&gt;&gt;Server: リクエスト（クッキー付き）
-    Server--&gt;&gt;User: リクエスト処理結果
-    Note over Server: セッションを更新
+<pre><code class="language-mermaid">flowchart TD
+    A[ログイン] --&gt; B[セッションID生成]
+    B --&gt; C[クッキーに設定]
+    C --&gt; D[セッション維持]
+    D --&gt; E[セッション更新]
+    E --&gt; D
+    D --&gt; F[ログアウト]
+    F --&gt; G[クッキー削除]
 </code></pre>
-<h2 id="主要コンポーネント-2"><a class="header" href="#主要コンポーネント-2">主要コンポーネント</a></h2>
+<h2 id="仕様特徴詳細-1"><a class="header" href="#仕様特徴詳細-1">仕様・特徴（詳細）</a></h2>
+<h3 id="データ状態ルール-2"><a class="header" href="#データ状態ルール-2">データ・状態・ルール</a></h3>
 <ul>
-<li><strong>セッションID</strong>: ユーザーのセッションを識別するための一意のID。</li>
-<li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークン。</li>
-<li><strong>クッキー</strong>: セッション情報をブラウザに保存するための仕組み。</li>
+<li><strong>セッションID</strong>: ユーザーのセッションを一意に識別するためのトークンです。30分の有効期限があります。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L8">1</a></li>
+<li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークンで、最大400日間有効です。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L12">2</a></li>
+<li><strong>クッキーの設定</strong>: セッションIDとリフレッシュトークンは、HTTPクッキーとしてブラウザに保存されます。これにより、ユーザーが再度ログインすることなく、セッションを維持できます。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L18">3</a></li>
 </ul>
-<h2 id="外部内部インターフェース-2"><a class="header" href="#外部内部インターフェース-2">外部/内部インターフェース</a></h2>
-<ul>
-<li><strong>クッキーの設定</strong>: <code>set_session_cookie_with_expiration</code>関数を使用して、セッションIDをクッキーに設定します。</li>
-<li><strong>セッション情報の抽出</strong>: <code>extract_session_information</code>関数を使用して、リクエストからセッション情報を取得します。</li>
-</ul>
-<h2 id="例ユーザー視点のシナリオ-2"><a class="header" href="#例ユーザー視点のシナリオ-2">例（ユーザー視点のシナリオ）</a></h2>
+<h3 id="フローとアルゴリズム"><a class="header" href="#フローとアルゴリズム">フローとアルゴリズム</a></h3>
 <ol>
-<li>ユーザーがアプリケーションにログインすると、サーバーはセッションIDを生成し、クッキーに保存します。</li>
-<li>ユーザーがアプリケーションを利用するたびに、クッキーからセッションIDを取得し、サーバーで認証を行います。</li>
-<li>一定時間が経過すると、サーバーはセッションを更新し、ユーザーはログイン状態を維持します。</li>
+<li>ユーザーがログインすると、サーバーはセッションIDとリフレッシュトークンを生成します。</li>
+<li>生成されたトークンは、クッキーとしてブラウザに保存されます。</li>
+<li>ユーザーがアプリケーションを利用する際、サーバーはクッキーからセッションIDを取得し、ユーザーの状態を確認します。</li>
+<li>セッションが有効な場合、ユーザーはサービスを利用できます。</li>
+<li>セッションが無効な場合、再度ログインを求められます。</li>
 </ol>
-<h2 id="制約と既知の注意点-2"><a class="header" href="#制約と既知の注意点-2">制約と既知の注意点</a></h2>
+<h3 id="例外コーナーケース既知の落とし穴-2"><a class="header" href="#例外コーナーケース既知の落とし穴-2">例外・コーナーケース・既知の落とし穴</a></h3>
 <ul>
-<li>セッションは一定の時間が経過すると自動的に無効になります。</li>
-<li>セッションIDが漏洩すると、不正アクセスのリスクが高まります。</li>
-<li>クッキーのサイズ制限に注意が必要です。</li>
+<li><strong>セッションの盗用</strong>: セッションIDが第三者に知られると、悪用される可能性があります。これを防ぐために、セッションの盗用を検知し、適切な対策を講じる必要があります。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/mitigate_session_theft.rs#L10">4</a></li>
+<li><strong>クッキーの有効期限切れ</strong>: クッキーの有効期限が切れると、ユーザーは再度ログインする必要があります。これを適切に管理することが重要です。</li>
 </ul>
-<h2 id="用語集-2"><a class="header" href="#用語集-2">用語集</a></h2>
+<h3 id="制約前提非機能要件-2"><a class="header" href="#制約前提非機能要件-2">制約・前提・非機能要件</a></h3>
 <ul>
-<li><strong>セッションID</strong>: ユーザーのセッションを識別するための一意の識別子。</li>
-<li><strong>リフレッシュトークン</strong>: セッションを延長するために使用されるトークン。</li>
-<li><strong>クッキー</strong>: ブラウザに保存される小さなデータファイル。</li>
+<li>セッション管理は、セキュリティを考慮して設計される必要があります。特に、セッションIDやリフレッシュトークンは安全に生成され、保存されるべきです。</li>
+<li>セッションの有効期限や更新のタイミングは、システムの要件に応じて設定される必要があります。</li>
+</ul>
+<h2 id="利用シナリオユーザー視点-2"><a class="header" href="#利用シナリオユーザー視点-2">利用シナリオ（ユーザー視点）</a></h2>
+<ul>
+<li>ユーザーがアプリケーションにログインし、セッションが開始されます。ユーザーは、一定の時間内に再度ログインすることなく、アプリケーションを利用し続けることができます。</li>
+<li>セッションが切れる前に、リフレッシュトークンを用いて新しいセッションIDが発行され、ユーザーは引き続きサービスを利用できます。</li>
+</ul>
+<h2 id="運用のヒント--ベストプラクティスbad-knowhow-可-2"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可-2">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
+<ul>
+<li>セッションの有効期限を適切に設定し、ユーザーに不便をかけないようにすることが重要です。</li>
+<li>セッションの盗用を防ぐために、セッションの監視や異常検知の仕組みを導入することが推奨されます。</li>
+<li>クッキーのセキュリティ設定（Secure、HttpOnly、SameSite）を適切に行うことで、セキュリティを強化できます。</li>
+</ul>
+<h2 id="用語集-1"><a class="header" href="#用語集-1">用語集</a></h2>
+<ul>
+<li><strong>セッションID</strong>: ユーザーのセッションを識別するための一意のトークン。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークン。</li>
+<li><strong>クッキー</strong>: ブラウザに保存される小さなデータで、セッション情報を保持するために使用される。</li>
 </ul>
 <h2 id="関連ファイル-2"><a class="header" href="#関連ファイル-2">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/session/cookie.rs</code></li>
-<li><code>src/common/session/mod.rs</code></li>
-<li><code>src/common/session/refresh_pair_expiration.rs</code></li>
-<li><code>src/common/session/refresh_token.rs</code></li>
-<li><code>src/common/session/session_expiration.rs</code></li>
-<li><code>src/common/session/session_id.rs</code></li>
-<li><code>src/common/session/session_series.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/authenticate.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/extract_session_info.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/manage_session.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/mitigate_session_theft.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/reauthenticate.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/refresh_session_series.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/update_refresh_token.rs</code></li>
-<li><code>src/middlewares/manage_session/dsl/update_session.rs</code></li>
-<li><code>src/middlewares/start_session/dsl/assign_refresh_pair.rs</code></li>
-<li><code>src/middlewares/start_session/dsl/assign_session_id.rs</code></li>
-<li><code>src/middlewares/start_session/dsl/start_session.rs</code></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs">src/common/session/cookie.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/mod.rs">src/common/session/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/refresh_pair_expiration.rs">src/common/session/refresh_pair_expiration.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/refresh_token.rs">src/common/session/refresh_token.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_expiration.rs">src/common/session/session_expiration.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_id.rs">src/common/session/session_id.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_series.rs">src/common/session/session_series.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/auth/sign_in/endpoint.rs">src/endpoints/auth/sign_in/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/auth/sign_out/endpoint.rs">src/endpoints/auth/sign_out/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/manage_session.rs">src/middlewares/manage_session/dsl/manage_session.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/mitigate_session_theft.rs">src/middlewares/manage_session/dsl/mitigate_session_theft.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/mitigate_session_theft.rs">src/middlewares/manage_session/interpreter/mitigate_session_theft.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/dsl/start_session.rs">src/middlewares/start_session/dsl/start_session.rs</a></li>
 </ul>
+<h2 id="根拠注釈-2"><a class="header" href="#根拠注釈-2">根拠注釈</a></h2>
 
                     </main>
 
