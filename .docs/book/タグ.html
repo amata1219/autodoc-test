@@ -175,53 +175,80 @@
 
                 <div id="content" class="content">
                     <main>
-                        <pre><code class="language-json">[
-    "src/common/tag/hierarchy.rs",
-    "src/common/tag/language_group.rs",
-    "src/common/tag/non_top_tag.rs",
-    "src/common/tag/proposal_operation.rs",
-    "src/common/tag/redis_tag_info.rs",
-    "src/common/tag/relation.rs",
-    "src/common/tag/tag_id.rs",
-    "src/common/tag/tag_info.rs",
-    "src/common/tag/tag_name.rs",
-    "src/common/tag/top_tag.rs",
-    "src/endpoints/tag/list/mod.rs",
-    "src/endpoints/tag/proposal/mod.rs",
-    "src/endpoints/tag/proposal/propose/dsl/mod.rs",
-    "src/endpoints/tag/proposal/propose/endpoint.rs",
-    "src/endpoints/tag/proposal/propose/interpreter/mod.rs",
-    "src/endpoints/tag/proposal/withdraw/mod.rs",
-    "src/endpoints/tag/rating/get/mod.rs",
-    "src/endpoints/tag/rating/rate/mod.rs",
-    "src/endpoints/tag/rating/unrate/mod.rs",
-    "src/endpoints/tag/search/mod.rs"
-]
+                        <h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
+<h2 id="概要"><a class="header" href="#概要">概要</a></h2>
+<p>タグは、情報を整理し、関連性を持たせるための重要な要素です。本システムでは、タグの階層構造や言語グループを管理し、タグ間の関係性を提案・評価する機能を提供します。</p>
+<h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
+<p>タグを適切に管理することで、情報の検索性や整理が向上し、ユーザーが必要な情報に迅速にアクセスできるようになります。また、タグの関係性を評価することで、関連情報をより効果的に提示することが可能になります。</p>
+<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
+<ol>
+<li><strong>タグの作成</strong>: ユーザーが新しいタグを作成します。</li>
+<li><strong>タグの提案</strong>: タグ間の関係性を提案します（例: 包含関係や同値関係）。</li>
+<li><strong>タグの評価</strong>: 提案された関係性を評価し、必要に応じて修正します。</li>
+<li><strong>タグの検索</strong>: タグを使用して関連情報を検索します。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant System
+    User-&gt;&gt;System: タグを作成
+    System--&gt;&gt;User: タグ作成完了
+    User-&gt;&gt;System: タグ関係を提案
+    System--&gt;&gt;User: 提案完了
+    User-&gt;&gt;System: 提案を評価
+    System--&gt;&gt;User: 評価結果
+    User-&gt;&gt;System: タグを検索
+    System--&gt;&gt;User: 検索結果
 </code></pre>
-<hr />
+<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
+<ul>
+<li><strong>タグ階層 (TagHierarchy)</strong>: タグの上位・下位関係を管理します。</li>
+<li><strong>言語グループ (LanguageGroup)</strong>: タグが属する言語を管理します。</li>
+<li><strong>提案操作 (ProposalOperation)</strong>: タグの提案状態を管理します。</li>
+<li><strong>Redis タグ情報 (RedisTagInfo)</strong>: タグの情報をRedisに保存し、効率的に管理します。</li>
+<li><strong>タグ関係 (TagRelation)</strong>: タグ間の関係性を定義し、検証します。</li>
+</ul>
+<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>APIエンドポイント</strong>:
+<ul>
+<li><code>ListRelatedTags</code>: タグのリストを取得します。</li>
+<li><code>ProposeTagRelation</code>: タグの関係性を提案します。</li>
+</ul>
+</li>
+<li><strong>データベース</strong>: ScyllaDBを使用してタグ情報を管理します。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーが「プログラミング」というタグを作成します。</li>
+<li>システムが「プログラミング」と「コーディング」の関係性を提案します。</li>
+<li>ユーザーが提案を評価し、承認します。</li>
+<li>ユーザーが「プログラミング」タグを使って関連する情報を検索します。</li>
+</ol>
+<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
+<ul>
+<li>タグのリストは、最大で10件まで表示されます（<code>PAGE_SIZE</code>）。</li>
+<li>タグの関係性を提案する際、既存のタグとの整合性を確認する必要があります。</li>
+<li>エラーハンドリングが適切に行われていない場合、ユーザーに不明なエラーメッセージが表示されることがあります。</li>
+</ul>
+<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<ul>
+<li><strong>タグ (Tag)</strong>: 情報を分類するためのラベル。</li>
+<li><strong>階層 (Hierarchy)</strong>: タグ間の上位・下位関係。</li>
+<li><strong>提案 (Proposal)</strong>: タグ間の関係性を示す提案。</li>
+<li><strong>安定性 (Stability)</strong>: タグの信頼性や確実性を示す指標。</li>
+</ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/tag/mod.rs</code></li>
-<li><code>src/common/tag/hierarchy.rs</code></li>
-<li><code>src/common/tag/language_group.rs</code></li>
-<li><code>src/common/tag/non_top_tag.rs</code></li>
-<li><code>src/common/tag/proposal_operation.rs</code></li>
-<li><code>src/common/tag/redis_tag_info.rs</code></li>
-<li><code>src/common/tag/relation.rs</code></li>
-<li><code>src/common/tag/tag_id.rs</code></li>
-<li><code>src/common/tag/tag_info.rs</code></li>
-<li><code>src/common/tag/tag_name.rs</code></li>
-<li><code>src/common/tag/top_tag.rs</code></li>
-<li><code>src/endpoints/tag/list/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/dsl/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/endpoint.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/interpreter/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/withdraw/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/get/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/rate/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/unrate/mod.rs</code></li>
-<li><code>src/endpoints/tag/search/mod.rs</code></li>
+<li><code>TagHierarchy</code></li>
+<li><code>LanguageGroup</code></li>
+<li><code>ProposalOperation</code></li>
+<li><code>RedisTagInfo</code></li>
+<li><code>TagRelation</code></li>
+<li><code>TagInfo</code></li>
+<li><code>TagName</code></li>
+<li><code>TopTagId</code></li>
+<li><code>Endpoints</code></li>
+<li><code>エラーハンドリング</code></li>
 </ul>
 
                     </main>

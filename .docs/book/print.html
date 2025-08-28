@@ -179,103 +179,234 @@
                         <h1 id="新しいソーシャルネットワークサービス-netmate"><a class="header" href="#新しいソーシャルネットワークサービス-netmate">新しいソーシャルネットワークサービス Netmate</a></h1>
 <p>このサイトはソースコード（Single Source of Truth）から自動生成された、主要概念の読み物です。</p>
 <ul>
-<li>生成日時: 2025-08-28 14:29:15 UTC</li>
+<li>生成日時: 2025-08-28 14:37:02 UTC</li>
 <li>対象ディレクトリ: <code>src</code></li>
 </ul>
 <p>各章は、該当概念に関する関連コードを解析し、非エンジニアにも読みやすい形でまとめています。</p>
-<div style="break-before: page; page-break-before: always;"></div><pre><code class="language-json">[
-    "src/common/tag/hierarchy.rs",
-    "src/common/tag/language_group.rs",
-    "src/common/tag/non_top_tag.rs",
-    "src/common/tag/proposal_operation.rs",
-    "src/common/tag/redis_tag_info.rs",
-    "src/common/tag/relation.rs",
-    "src/common/tag/tag_id.rs",
-    "src/common/tag/tag_info.rs",
-    "src/common/tag/tag_name.rs",
-    "src/common/tag/top_tag.rs",
-    "src/endpoints/tag/list/mod.rs",
-    "src/endpoints/tag/proposal/mod.rs",
-    "src/endpoints/tag/proposal/propose/dsl/mod.rs",
-    "src/endpoints/tag/proposal/propose/endpoint.rs",
-    "src/endpoints/tag/proposal/propose/interpreter/mod.rs",
-    "src/endpoints/tag/proposal/withdraw/mod.rs",
-    "src/endpoints/tag/rating/get/mod.rs",
-    "src/endpoints/tag/rating/rate/mod.rs",
-    "src/endpoints/tag/rating/unrate/mod.rs",
-    "src/endpoints/tag/search/mod.rs"
-]
+<div style="break-before: page; page-break-before: always;"></div><h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
+<h2 id="概要"><a class="header" href="#概要">概要</a></h2>
+<p>タグは、情報を整理し、関連性を持たせるための重要な要素です。本システムでは、タグの階層構造や言語グループを管理し、タグ間の関係性を提案・評価する機能を提供します。</p>
+<h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
+<p>タグを適切に管理することで、情報の検索性や整理が向上し、ユーザーが必要な情報に迅速にアクセスできるようになります。また、タグの関係性を評価することで、関連情報をより効果的に提示することが可能になります。</p>
+<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
+<ol>
+<li><strong>タグの作成</strong>: ユーザーが新しいタグを作成します。</li>
+<li><strong>タグの提案</strong>: タグ間の関係性を提案します（例: 包含関係や同値関係）。</li>
+<li><strong>タグの評価</strong>: 提案された関係性を評価し、必要に応じて修正します。</li>
+<li><strong>タグの検索</strong>: タグを使用して関連情報を検索します。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant System
+    User-&gt;&gt;System: タグを作成
+    System--&gt;&gt;User: タグ作成完了
+    User-&gt;&gt;System: タグ関係を提案
+    System--&gt;&gt;User: 提案完了
+    User-&gt;&gt;System: 提案を評価
+    System--&gt;&gt;User: 評価結果
+    User-&gt;&gt;System: タグを検索
+    System--&gt;&gt;User: 検索結果
 </code></pre>
-<hr />
+<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
+<ul>
+<li><strong>タグ階層 (TagHierarchy)</strong>: タグの上位・下位関係を管理します。</li>
+<li><strong>言語グループ (LanguageGroup)</strong>: タグが属する言語を管理します。</li>
+<li><strong>提案操作 (ProposalOperation)</strong>: タグの提案状態を管理します。</li>
+<li><strong>Redis タグ情報 (RedisTagInfo)</strong>: タグの情報をRedisに保存し、効率的に管理します。</li>
+<li><strong>タグ関係 (TagRelation)</strong>: タグ間の関係性を定義し、検証します。</li>
+</ul>
+<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>APIエンドポイント</strong>:
+<ul>
+<li><code>ListRelatedTags</code>: タグのリストを取得します。</li>
+<li><code>ProposeTagRelation</code>: タグの関係性を提案します。</li>
+</ul>
+</li>
+<li><strong>データベース</strong>: ScyllaDBを使用してタグ情報を管理します。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーが「プログラミング」というタグを作成します。</li>
+<li>システムが「プログラミング」と「コーディング」の関係性を提案します。</li>
+<li>ユーザーが提案を評価し、承認します。</li>
+<li>ユーザーが「プログラミング」タグを使って関連する情報を検索します。</li>
+</ol>
+<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
+<ul>
+<li>タグのリストは、最大で10件まで表示されます（<code>PAGE_SIZE</code>）。</li>
+<li>タグの関係性を提案する際、既存のタグとの整合性を確認する必要があります。</li>
+<li>エラーハンドリングが適切に行われていない場合、ユーザーに不明なエラーメッセージが表示されることがあります。</li>
+</ul>
+<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<ul>
+<li><strong>タグ (Tag)</strong>: 情報を分類するためのラベル。</li>
+<li><strong>階層 (Hierarchy)</strong>: タグ間の上位・下位関係。</li>
+<li><strong>提案 (Proposal)</strong>: タグ間の関係性を示す提案。</li>
+<li><strong>安定性 (Stability)</strong>: タグの信頼性や確実性を示す指標。</li>
+</ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/tag/mod.rs</code></li>
-<li><code>src/common/tag/hierarchy.rs</code></li>
-<li><code>src/common/tag/language_group.rs</code></li>
-<li><code>src/common/tag/non_top_tag.rs</code></li>
-<li><code>src/common/tag/proposal_operation.rs</code></li>
-<li><code>src/common/tag/redis_tag_info.rs</code></li>
-<li><code>src/common/tag/relation.rs</code></li>
-<li><code>src/common/tag/tag_id.rs</code></li>
-<li><code>src/common/tag/tag_info.rs</code></li>
-<li><code>src/common/tag/tag_name.rs</code></li>
-<li><code>src/common/tag/top_tag.rs</code></li>
-<li><code>src/endpoints/tag/list/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/dsl/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/endpoint.rs</code></li>
-<li><code>src/endpoints/tag/proposal/propose/interpreter/mod.rs</code></li>
-<li><code>src/endpoints/tag/proposal/withdraw/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/get/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/rate/mod.rs</code></li>
-<li><code>src/endpoints/tag/rating/unrate/mod.rs</code></li>
-<li><code>src/endpoints/tag/search/mod.rs</code></li>
+<li><code>TagHierarchy</code></li>
+<li><code>LanguageGroup</code></li>
+<li><code>ProposalOperation</code></li>
+<li><code>RedisTagInfo</code></li>
+<li><code>TagRelation</code></li>
+<li><code>TagInfo</code></li>
+<li><code>TagName</code></li>
+<li><code>TopTagId</code></li>
+<li><code>Endpoints</code></li>
+<li><code>エラーハンドリング</code></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><pre><code class="language-json">[
-    "src/common/handle/id.rs",
-    "src/common/handle/name.rs",
-    "src/endpoints/handle/create/mod.rs",
-    "src/endpoints/handle/delete/mod.rs",
-    "src/endpoints/handle/list/mod.rs",
-    "src/endpoints/handle/rename/mod.rs",
-    "src/endpoints/handle/count/mod.rs"
-]
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
+<h2 id="概要-1"><a class="header" href="#概要-1">概要</a></h2>
+<p>ハンドルネームは、ユーザーがオンラインでのアイデンティティを表現するための名前です。このシステムでは、ユーザーが独自のハンドルネームを作成し、管理することができます。ハンドルネームは、ユーザーのアカウントに関連付けられ、他のユーザーとのインタラクションに使用されます。</p>
+<h2 id="なぜ重要か-1"><a class="header" href="#なぜ重要か-1">なぜ重要か</a></h2>
+<p>ハンドルネームは、ユーザーがオンラインで自分を表現する重要な要素です。適切なハンドルネームを持つことで、ユーザーは他のユーザーと簡単に識別され、コミュニケーションが円滑になります。また、ハンドルネームの管理機能は、ユーザーが自分のアイデンティティをコントロールできるようにするため、プライバシーやセキュリティの観点からも重要です。</p>
+<h2 id="基本の流れ-1"><a class="header" href="#基本の流れ-1">基本の流れ</a></h2>
+<ol>
+<li><strong>ハンドルネームの作成</strong>: ユーザーは新しいハンドルネームを作成し、アカウントに関連付けます。</li>
+<li><strong>ハンドルネームの取得</strong>: ユーザーは自分のハンドルネームや他のユーザーのハンドルネームを取得できます。</li>
+<li><strong>ハンドルネームの編集</strong>: ユーザーは既存のハンドルネームを変更できますが、特定の条件（匿名名義の削除など）に従う必要があります。</li>
+<li><strong>ハンドルネームの削除</strong>: ユーザーはハンドルネームを削除することができますが、匿名名義は削除できません。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant System
+    User-&gt;&gt;System: ハンドルネームを作成
+    System--&gt;&gt;User: ハンドルネームの確認
+    User-&gt;&gt;System: ハンドルネームを取得
+    System--&gt;&gt;User: ハンドルネームの表示
+    User-&gt;&gt;System: ハンドルネームを編集
+    System--&gt;&gt;User: 編集結果の確認
+    User-&gt;&gt;System: ハンドルネームを削除
+    System--&gt;&gt;User: 削除結果の確認
 </code></pre>
-<hr />
+<h2 id="主要コンポーネント-1"><a class="header" href="#主要コンポーネント-1">主要コンポーネント</a></h2>
+<ul>
+<li><strong>HandleId</strong>: ハンドルネームを一意に識別するためのID。</li>
+<li><strong>HandleName</strong>: ユーザーが設定するハンドルネームの文字列。</li>
+<li><strong>HandleShareCount</strong>: ハンドルネームが他のユーザーにどれだけ共有されたかを示すカウント。</li>
+</ul>
+<h2 id="外部内部インターフェース-1"><a class="header" href="#外部内部インターフェース-1">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>APIエンドポイント</strong>:
+<ul>
+<li><code>POST /handles</code>: 新しいハンドルネームを作成。</li>
+<li><code>GET /handles</code>: ユーザーのハンドルネームをリスト表示。</li>
+<li><code>PATCH /handles</code>: ハンドルネームを編集。</li>
+<li><code>DELETE /handles/:id</code>: ハンドルネームを削除。</li>
+</ul>
+</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ-1"><a class="header" href="#例ユーザー視点のシナリオ-1">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーは「CoolCat」というハンドルネームを作成します。</li>
+<li>他のユーザーが「CoolCat」を検索し、見つけます。</li>
+<li>ユーザーは「CoolCat」を「AwesomeCat」に変更します。</li>
+<li>ユーザーは「AwesomeCat」を削除しようとしますが、条件により削除できないことを知ります。</li>
+</ol>
+<h2 id="制約と既知の注意点-1"><a class="header" href="#制約と既知の注意点-1">制約と既知の注意点</a></h2>
+<ul>
+<li>ハンドルネームは最大100文字までとし、特定の文字コスト制限があります。</li>
+<li>匿名名義は削除できません。</li>
+<li>ハンドルネームの変更は、他のユーザーとの識別に影響を与える可能性があります。</li>
+</ul>
+<h2 id="用語集-1"><a class="header" href="#用語集-1">用語集</a></h2>
+<ul>
+<li><strong>ハンドルネーム</strong>: ユーザーがオンラインで使用する名前。</li>
+<li><strong>HandleId</strong>: ハンドルネームを一意に識別するためのID。</li>
+<li><strong>HandleShareCount</strong>: ハンドルネームが他のユーザーにどれだけ共有されたかを示すカウント。</li>
+</ul>
 <h2 id="関連ファイル-1"><a class="header" href="#関連ファイル-1">関連ファイル</a></h2>
 <ul>
 <li><code>src/common/handle/id.rs</code></li>
 <li><code>src/common/handle/name.rs</code></li>
-<li><code>src/endpoints/handle/create/mod.rs</code></li>
-<li><code>src/endpoints/handle/delete/mod.rs</code></li>
-<li><code>src/endpoints/handle/list/mod.rs</code></li>
-<li><code>src/endpoints/handle/rename/mod.rs</code></li>
-<li><code>src/endpoints/handle/count/mod.rs</code></li>
+<li><code>src/common/handle/share_count.rs</code></li>
+<li><code>src/endpoints/handle/create/dsl.rs</code></li>
+<li><code>src/endpoints/handle/create/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/delete/dsl.rs</code></li>
+<li><code>src/endpoints/handle/delete/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/list/dsl.rs</code></li>
+<li><code>src/endpoints/handle/list/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/rename/dsl.rs</code></li>
+<li><code>src/endpoints/handle/rename/endpoint.rs</code></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><pre><code class="language-json">[
-    "src/common/session/cookie.rs",
-    "src/common/session/refresh_pair_expiration.rs",
-    "src/common/session/refresh_token.rs",
-    "src/common/session/session_expiration.rs",
-    "src/common/session/session_id.rs",
-    "src/common/session/session_series.rs",
-    "src/middlewares/manage_session/dsl/manage_session.rs",
-    "src/middlewares/start_session/dsl/start_session.rs"
-]
+<div style="break-before: page; page-break-before: always;"></div><h1 id="セッション管理"><a class="header" href="#セッション管理">セッション管理</a></h1>
+<h2 id="概要-2"><a class="header" href="#概要-2">概要</a></h2>
+<p>セッション管理は、ユーザーがアプリケーションにログインしている間、その状態を維持するための仕組みです。これにより、ユーザーは再度ログインすることなく、アプリケーション内での操作を続けることができます。</p>
+<h2 id="なぜ重要か-2"><a class="header" href="#なぜ重要か-2">なぜ重要か</a></h2>
+<p>セッション管理は、ユーザー体験を向上させるだけでなく、セキュリティの観点からも重要です。適切なセッション管理を行うことで、不正アクセスやセッションの盗用を防ぎ、ユーザーのデータを保護します。</p>
+<h2 id="基本の流れ-2"><a class="header" href="#基本の流れ-2">基本の流れ</a></h2>
+<ol>
+<li><strong>ログイン</strong>: ユーザーがアカウント情報を入力し、認証が成功すると、セッションが開始されます。</li>
+<li><strong>セッションIDの生成</strong>: サーバーは一意のセッションIDを生成し、クッキーとしてユーザーのブラウザに保存します。</li>
+<li><strong>リクエストの処理</strong>: ユーザーがアプリケーション内で操作を行うたびに、セッションIDがサーバーに送信され、ユーザーの状態が確認されます。</li>
+<li><strong>セッションの更新</strong>: 一定の時間が経過する前に、セッションが自動的に更新され、ユーザーはログイン状態を維持できます。</li>
+<li><strong>ログアウト</strong>: ユーザーがログアウトすると、セッションは終了し、セッションIDは無効化されます。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant Server
+    User-&gt;&gt;Server: ログイン情報を送信
+    Server--&gt;&gt;User: セッションIDを含むクッキーを返す
+    User-&gt;&gt;Server: セッションIDを含むリクエストを送信
+    Server--&gt;&gt;User: リクエストを処理
+    User-&gt;&gt;Server: 操作を続ける
+    Server--&gt;&gt;User: セッションを更新
+    User-&gt;&gt;Server: ログアウト
+    Server--&gt;&gt;User: セッションを終了
 </code></pre>
-<hr />
+<h2 id="主要コンポーネント-2"><a class="header" href="#主要コンポーネント-2">主要コンポーネント</a></h2>
+<ul>
+<li><strong>セッションID</strong>: 各ユーザーセッションを識別するための一意の識別子。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを延長するために使用されるトークン。</li>
+<li><strong>クッキー</strong>: セッションIDやリフレッシュトークンをブラウザに保存するための仕組み。</li>
+</ul>
+<h2 id="外部内部インターフェース-2"><a class="header" href="#外部内部インターフェース-2">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>クッキー管理</strong>: セッションIDやリフレッシュトークンをクッキーとして設定・取得するための関数。</li>
+<li><strong>認証機能</strong>: セッションIDを用いてユーザーの認証を行う機能。</li>
+<li><strong>セッション更新機能</strong>: セッションの有効期限を延長するための機能。</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ-2"><a class="header" href="#例ユーザー視点のシナリオ-2">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーがログインフォームに情報を入力し、送信します。</li>
+<li>サーバーは認証に成功し、セッションIDを生成してクッキーに保存します。</li>
+<li>ユーザーがアプリケーション内でページを移動するたびに、セッションIDが送信され、ユーザーの状態が維持されます。</li>
+<li>一定時間後、ユーザーが再度操作を行うと、セッションが更新され、ログイン状態が維持されます。</li>
+<li>ユーザーがログアウトボタンをクリックすると、セッションが終了し、セッションIDが無効化されます。</li>
+</ol>
+<h2 id="制約と既知の注意点-2"><a class="header" href="#制約と既知の注意点-2">制約と既知の注意点</a></h2>
+<ul>
+<li>セッションの有効期限を設定することで、セキュリティを強化できますが、ユーザーの利便性にも影響を与える可能性があります。</li>
+<li>セッションIDが漏洩すると、不正アクセスのリスクが高まります。適切なセキュリティ対策が必要です。</li>
+</ul>
+<h2 id="用語集-2"><a class="header" href="#用語集-2">用語集</a></h2>
+<ul>
+<li><strong>セッション</strong>: ユーザーがアプリケーションにログインしている間の状態。</li>
+<li><strong>セッションID</strong>: 各セッションを識別するための一意の識別子。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを延長するために使用されるトークン。</li>
+</ul>
 <h2 id="関連ファイル-2"><a class="header" href="#関連ファイル-2">関連ファイル</a></h2>
 <ul>
-<li><code>src/common/session/mod.rs</code></li>
 <li><code>src/common/session/cookie.rs</code></li>
+<li><code>src/common/session/mod.rs</code></li>
+<li><code>src/common/session/refresh_pair_expiration.rs</code></li>
 <li><code>src/common/session/refresh_token.rs</code></li>
+<li><code>src/common/session/session_expiration.rs</code></li>
 <li><code>src/common/session/session_id.rs</code></li>
 <li><code>src/common/session/session_series.rs</code></li>
-<li><code>src/common/session/session_expiration.rs</code></li>
-<li><code>src/common/session/refresh_pair_expiration.rs</code></li>
-<li><code>src/middlewares/manage_session/mod.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/authenticate.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/extract_session_info.rs</code></li>
 <li><code>src/middlewares/manage_session/dsl/manage_session.rs</code></li>
-<li><code>src/middlewares/start_session/mod.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/mitigate_session_theft.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/reauthenticate.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/refresh_session_series.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/update_refresh_token.rs</code></li>
+<li><code>src/middlewares/manage_session/dsl/update_session.rs</code></li>
+<li><code>src/middlewares/start_session/dsl/assign_refresh_pair.rs</code></li>
+<li><code>src/middlewares/start_session/dsl/assign_session_id.rs</code></li>
 <li><code>src/middlewares/start_session/dsl/start_session.rs</code></li>
 </ul>
 

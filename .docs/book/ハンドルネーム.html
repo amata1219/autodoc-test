@@ -175,26 +175,79 @@
 
                 <div id="content" class="content">
                     <main>
-                        <pre><code class="language-json">[
-    "src/common/handle/id.rs",
-    "src/common/handle/name.rs",
-    "src/endpoints/handle/create/mod.rs",
-    "src/endpoints/handle/delete/mod.rs",
-    "src/endpoints/handle/list/mod.rs",
-    "src/endpoints/handle/rename/mod.rs",
-    "src/endpoints/handle/count/mod.rs"
-]
+                        <h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
+<h2 id="概要"><a class="header" href="#概要">概要</a></h2>
+<p>ハンドルネームは、ユーザーがオンラインでのアイデンティティを表現するための名前です。このシステムでは、ユーザーが独自のハンドルネームを作成し、管理することができます。ハンドルネームは、ユーザーのアカウントに関連付けられ、他のユーザーとのインタラクションに使用されます。</p>
+<h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
+<p>ハンドルネームは、ユーザーがオンラインで自分を表現する重要な要素です。適切なハンドルネームを持つことで、ユーザーは他のユーザーと簡単に識別され、コミュニケーションが円滑になります。また、ハンドルネームの管理機能は、ユーザーが自分のアイデンティティをコントロールできるようにするため、プライバシーやセキュリティの観点からも重要です。</p>
+<h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
+<ol>
+<li><strong>ハンドルネームの作成</strong>: ユーザーは新しいハンドルネームを作成し、アカウントに関連付けます。</li>
+<li><strong>ハンドルネームの取得</strong>: ユーザーは自分のハンドルネームや他のユーザーのハンドルネームを取得できます。</li>
+<li><strong>ハンドルネームの編集</strong>: ユーザーは既存のハンドルネームを変更できますが、特定の条件（匿名名義の削除など）に従う必要があります。</li>
+<li><strong>ハンドルネームの削除</strong>: ユーザーはハンドルネームを削除することができますが、匿名名義は削除できません。</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant User
+    participant System
+    User-&gt;&gt;System: ハンドルネームを作成
+    System--&gt;&gt;User: ハンドルネームの確認
+    User-&gt;&gt;System: ハンドルネームを取得
+    System--&gt;&gt;User: ハンドルネームの表示
+    User-&gt;&gt;System: ハンドルネームを編集
+    System--&gt;&gt;User: 編集結果の確認
+    User-&gt;&gt;System: ハンドルネームを削除
+    System--&gt;&gt;User: 削除結果の確認
 </code></pre>
-<hr />
+<h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
+<ul>
+<li><strong>HandleId</strong>: ハンドルネームを一意に識別するためのID。</li>
+<li><strong>HandleName</strong>: ユーザーが設定するハンドルネームの文字列。</li>
+<li><strong>HandleShareCount</strong>: ハンドルネームが他のユーザーにどれだけ共有されたかを示すカウント。</li>
+</ul>
+<h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
+<ul>
+<li><strong>APIエンドポイント</strong>:
+<ul>
+<li><code>POST /handles</code>: 新しいハンドルネームを作成。</li>
+<li><code>GET /handles</code>: ユーザーのハンドルネームをリスト表示。</li>
+<li><code>PATCH /handles</code>: ハンドルネームを編集。</li>
+<li><code>DELETE /handles/:id</code>: ハンドルネームを削除。</li>
+</ul>
+</li>
+</ul>
+<h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
+<ol>
+<li>ユーザーは「CoolCat」というハンドルネームを作成します。</li>
+<li>他のユーザーが「CoolCat」を検索し、見つけます。</li>
+<li>ユーザーは「CoolCat」を「AwesomeCat」に変更します。</li>
+<li>ユーザーは「AwesomeCat」を削除しようとしますが、条件により削除できないことを知ります。</li>
+</ol>
+<h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
+<ul>
+<li>ハンドルネームは最大100文字までとし、特定の文字コスト制限があります。</li>
+<li>匿名名義は削除できません。</li>
+<li>ハンドルネームの変更は、他のユーザーとの識別に影響を与える可能性があります。</li>
+</ul>
+<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<ul>
+<li><strong>ハンドルネーム</strong>: ユーザーがオンラインで使用する名前。</li>
+<li><strong>HandleId</strong>: ハンドルネームを一意に識別するためのID。</li>
+<li><strong>HandleShareCount</strong>: ハンドルネームが他のユーザーにどれだけ共有されたかを示すカウント。</li>
+</ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
 <li><code>src/common/handle/id.rs</code></li>
 <li><code>src/common/handle/name.rs</code></li>
-<li><code>src/endpoints/handle/create/mod.rs</code></li>
-<li><code>src/endpoints/handle/delete/mod.rs</code></li>
-<li><code>src/endpoints/handle/list/mod.rs</code></li>
-<li><code>src/endpoints/handle/rename/mod.rs</code></li>
-<li><code>src/endpoints/handle/count/mod.rs</code></li>
+<li><code>src/common/handle/share_count.rs</code></li>
+<li><code>src/endpoints/handle/create/dsl.rs</code></li>
+<li><code>src/endpoints/handle/create/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/delete/dsl.rs</code></li>
+<li><code>src/endpoints/handle/delete/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/list/dsl.rs</code></li>
+<li><code>src/endpoints/handle/list/endpoint.rs</code></li>
+<li><code>src/endpoints/handle/rename/dsl.rs</code></li>
+<li><code>src/endpoints/handle/rename/endpoint.rs</code></li>
 </ul>
 
                     </main>
