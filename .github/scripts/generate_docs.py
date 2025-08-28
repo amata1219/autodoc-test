@@ -1,436 +1,441 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+リポジトリの src/ 構造から structure (YAML 文字列) を生成し、
+主要概念ごとに:
+  1) structure を LLM に渡して関連ファイルパスを JSON 配列で抽出
+  2) 該当ファイルを収集・整形して related_codes を作成
+  3) related_codes + 概念 を LLM に渡して、誰でもわかる説明の Markdown を生成
+  4) .docs/<slug>.md として保存し、mdBook 用の SUMMARY を自動生成
+
+必要な環境変数:
+- OPENAI_API_KEY: OpenAI の API キー
+
+任意の環境変数:
+- OAI_MODEL_FILES: ファイル抽出用モデル (default: gpt-4o-mini)
+- OAI_MODEL_DOCS: ドキュメンテーション用モデル (default: gpt-4o-mini)
+- SRC_DIR: 解析対象ディレクトリ (default: src)
+- CONCEPTS_FILE: 概念リストファイル (default: .docs/concepts.yaml)
+- OUTPUT_DIR: 出力ディレクトリ (default: .docs)
+- MAX_CONTEXT_CHARS: related_codes の最大文字数 (default: 120000)
+"""
+
+from __future__ import annotations
 import os
-import math
-from pathlib import Path
-from typing import Iterable, List, Tuple, Dict
+import re
+import sys
+import json
+import glob
+import yaml
+import time
+import pathlib
+import textwrap
+import typing as t
+import hashlib
+import requests
 
-import tiktoken
-from openai import OpenAI
+# ------------------ 設定 ------------------
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+if not OPENAI_API_KEY:
+    print("[ERROR] OPENAI_API_KEY が設定されていません。Actions の Secrets に登録してください。", file=sys.stderr)
+    sys.exit(1)
 
-try:
-    import tomllib  # Python 3.11+
-except ModuleNotFoundError:
-    tomllib = None  # toml解析はフォールバックで簡易判定
+OAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+MODEL_FILES = os.environ.get("OAI_MODEL_FILES", "gpt-4o-mini")
+MODEL_DOCS = os.environ.get("OAI_MODEL_DOCS", "gpt-4o-mini")
+SRC_DIR = os.environ.get("SRC_DIR", "src")
+CONCEPTS_FILE = os.environ.get("CONCEPTS_FILE", ".docs/concepts.yaml")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".docs")
+MAX_CONTEXT_CHARS = int(os.environ.get("MAX_CONTEXT_CHARS", "120000"))
 
-# ========= 設定 =========
-INCLUDE_EXTS = {".rs"}
-MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-SYSTEM_PROMPT = (
-    "You are a senior software architecture analyst and documentation specialist. "
-    "You infer house coding conventions, architectural patterns, and design tendencies from source code, "
-    "and you write clear, actionable Japanese documentation for engineers."
-)
-MAX_TOKENS_CONTEXT = 12000
+EXCLUDE_PATTERNS = [
+    r"(^|/)tests?(/|$)", r"(^|/)__tests__(/|$)", r"(^|/)spec(s)?(/|$)",
+    r"(^|/)e2e(/|$)", r"(^|/)fixtures?(/|$)", r"(^|/)mocks?(/|$)",
+    r"(^|/)stories?(/|$)", r"\.story\.", r"\.spec\.", r"\.test\.",
+    r"(^|/)scripts?(/|$)", r"(^|/)bench(marks)?(/|$)", r"(^|/)examples?(/|$)",
+    r"(^|/)docs?(/|$)", r"(^|/)\.docs(/|$)", r"(^|/)build(/|$)", r"(^|/)dist(/|$)",
+]
+EXCLUDE_RE = re.compile("|".join(EXCLUDE_PATTERNS), re.IGNORECASE)
 
-# ディレクトリツリー生成の設定
-EXCLUDE_DIRS = {
-    ".git", "target", ".idea", ".vscode", "node_modules", "dist", "build", ".venv", "__pycache__"
+ALLOWED_CODE_EXTS = {
+    ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
+    ".py", ".rb", ".go", ".rs", ".java", ".kt", ".kts", ".scala",
+    ".php", ".cs", ".cpp", ".c", ".hpp", ".h", ".swift",
+    ".sql", ".json", ".yml", ".yaml", ".toml", ".ini", ".env",
 }
-ALWAYS_INCLUDE_FILES = {
-    "Cargo.toml", "Cargo.lock", "README.md", "LICENSE", "rust-toolchain.toml", ".gitignore"
-}
-MAX_TREE_DEPTH = 6  # 深すぎるツリーを抑制
-# =======================
+
+# -------------- ユーティリティ --------------
+
+def slugify(text: str) -> str:
+    s = re.sub(r"[^\w\-\sぁ-んァ-ヶ一-龠]", "", text, flags=re.UNICODE)
+    s = s.strip().replace(" ", "-")
+    s = re.sub(r"-+", "-", s)
+    return s or "concept"
 
 
-# ---------- ユーティリティ ----------
-def get_encoder():
-    return tiktoken.get_encoding("cl100k_base")
+def read_concepts(path: str) -> tuple[str, list[str]]:
+    if not os.path.exists(path):
+        print(f"[WARN] 概念リスト {path} が見つかりません。スキップします。")
+        return ("", [])
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    domain = data.get("domain", "")
+    concepts = data.get("concepts", []) or []
+    if not concepts:
+        print("[WARN] concepts が空です。")
+    return (domain, list(concepts))
 
-def count_tokens(text: str) -> int:
-    enc = get_encoder()
-    return len(enc.encode(text))
 
-def read_text_file(p: Path) -> str:
-    try:
-        return p.read_text(encoding="utf-8", errors="replace")
-    except Exception:
-        return ""
+def build_structure_yaml(src_dir: str) -> str:
+    """src ディレクトリ以下の完全なツリーを YAML 文字列として構築"""
+    base = pathlib.Path(src_dir)
+    if not base.exists():
+        print(f"[ERROR] {src_dir} が存在しません。", file=sys.stderr)
+        sys.exit(1)
 
-def is_package_cargo(cargo_path: Path) -> bool:
-    """
-    Cargo.toml が [package] を持つなら True。
-    tomllib が使えない場合は素朴に文字列検索。
-    """
-    txt = read_text_file(cargo_path)
-    if not txt.strip():
-        return False
-    if tomllib:
-        try:
-            data = tomllib.loads(txt)
-            return "package" in data
-        except Exception:
-            pass
-    # フォールバック: 雑にセクション名を検索
-    return "[package]" in txt
-
-def find_crates(repo_root: Path) -> List[Path]:
-    """
-    リポジトリ配下のクレート（[package] を持つ Cargo.toml の親ディレクトリ）を列挙。
-    target/ や .git/ は除外。
-    """
-    crates: List[Path] = []
-    for cargo in repo_root.rglob("Cargo.toml"):
-        parts = set(cargo.parts)
-        if "target" in parts or ".git" in parts:
-            continue
-        if is_package_cargo(cargo):
-            crates.append(cargo.parent)
-    return sorted(set(crates))
-
-def iter_source_files(root: Path, exts: Iterable[str]) -> Iterable[Path]:
-    for p in root.rglob("*"):
-        if p.is_file() and p.suffix in exts:
-            yield p
-
-# ---------- ディレクトリツリー生成 ----------
-def _should_include_file(p: Path) -> bool:
-    if p.name in ALWAYS_INCLUDE_FILES:
-        return True
-    if p.suffix in INCLUDE_EXTS:
-        return True
-    # src/配下の主要ファイルはなるべく含める
-    if p.parent.name == "src" and p.suffix:
-        return True
-    return False
-
-def _listdir_sorted(path: Path) -> List[Path]:
-    try:
-        entries = list(path.iterdir())
-    except Exception:
-        return []
-    # ディレクトリ優先、アルファベット順
-    entries.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
-    return entries
-
-def _render_tree(root: Path, prefix: str = "", depth: int = 0) -> List[str]:
-    """
-    Unicode のツリー記号で表示を整える。
-    深さ制限や除外ディレクトリを考慮しつつ、必要最小限のファイルのみ含める。
-    """
-    if depth > MAX_TREE_DEPTH:
-        return [f"{prefix}└── … (truncated)\n"]
-
-    children = []
-    for entry in _listdir_sorted(root):
-        if entry.is_dir():
-            if entry.name in EXCLUDE_DIRS:
-                continue
-            # ディレクトリが有意（含めたいファイルを内包）かを先読みで判定
-            if not _dir_has_includable(entry):
-                continue
-            children.append(entry)
+    def tree(p: pathlib.Path):
+        if p.is_dir():
+            return {child.name: tree(child) for child in sorted(p.iterdir(), key=lambda x: x.name)}
         else:
-            if _should_include_file(entry):
-                children.append(entry)
+            return None  # ファイルは None として表現
 
-    lines: List[str] = []
-    for idx, child in enumerate(children):
-        is_last = (idx == len(children) - 1)
-        branch = "└── " if is_last else "├── "
-        next_prefix = "    " if is_last else "│   "
-        display_name = child.name + ("/" if child.is_dir() else "")
-        lines.append(f"{prefix}{branch}{display_name}\n")
-        if child.is_dir():
-            lines.extend(_render_tree(child, prefix + next_prefix, depth + 1))
-    return lines
+    structure = {base.name: tree(base)}
+    return yaml.safe_dump(structure, sort_keys=False, allow_unicode=True)
 
-def _dir_has_includable(d: Path, depth: int = 0) -> bool:
-    """
-    ディレクトリ配下に含めたい何かが存在するか（軽量に判定）。
-    """
-    if depth > 2:
-        return True  # 深追いしすぎない（存在する前提でOK）
-    try:
-        for e in d.iterdir():
-            if e.is_dir():
-                if e.name in EXCLUDE_DIRS:
-                    continue
-                if _dir_has_includable(e, depth + 1):
-                    return True
-            else:
-                if _should_include_file(e):
-                    return True
-    except Exception:
-        return False
-    return False
 
-def build_dir_trees(repo_root: Path, crates: List[Path]) -> str:
-    """
-    各クレートごとにツリーを機械生成し、Markdown 用のコードブロックにまとめる。
-    """
-    if not crates:
-        # 単一クレートでなくても、リポジトリ直下の意義あるものを表示
-        header = f"### {repo_root.name}\n\n```text\n{repo_root.name}/\n"
-        body = "".join(_render_tree(repo_root))
-        return header + body + "```\n"
+def list_all_files(src_dir: str) -> list[str]:
+    files = []
+    for root, dirs, filenames in os.walk(src_dir):
+        for fn in filenames:
+            rel = os.path.join(root, fn)
+            files.append(rel.replace("\\", "/"))
+    return files
 
-    sections: List[str] = []
-    for crate in crates:
-        rel = crate.relative_to(repo_root)
-        header = f"### {rel.as_posix()}\n\n```text\n{rel.name}/\n"
-        body = "".join(_render_tree(crate))
-        sections.append(header + body + "```\n")
-    return "\n".join(sections)
 
-# ---------- コンテキスト構築 ----------
-def collect_blocks(repo_root: Path) -> Tuple[List[Tuple[str, str]], Dict[str, str], List[Path]]:
-    """
-    blocks: [(title, content)] を返す（チャンク化前）。title はファイル見出し。
-    cargo_texts: crate_path -> Cargo.toml の中身
-    crates: 検出したクレートのルート一覧
-    """
-    blocks: List[Tuple[str, str]] = []
-    cargo_texts: Dict[str, str] = {}
+def is_code_file(path: str) -> bool:
+    ext = os.path.splitext(path)[1].lower()
+    return ext in ALLOWED_CODE_EXTS
 
-    crates = find_crates(repo_root)
-    print(f"Detected crates: {len(crates)}")
-    if not crates:
-        print("No crates found (no Cargo.toml with [package]).")
 
-    for crate in crates:
-        cargo_path = crate / "Cargo.toml"
-        cargo_txt = read_text_file(cargo_path)
-        if cargo_txt:
-            cargo_texts[str(crate)] = cargo_txt
+def exclude_dev_asset(path: str) -> bool:
+    return bool(EXCLUDE_RE.search(path))
 
-        # src/ 配下（bin/も含む）
-        src_dir = crate / "src"
-        if src_dir.exists():
-            files = sorted(iter_source_files(src_dir, INCLUDE_EXTS))
-        else:
-            files = []
-            print(f"  - {crate} (no src/ found)")
 
-        # build.rs
-        build_rs = crate / "build.rs"
-        if build_rs.exists():
-            files.append(build_rs)
+def ext_to_lang(ext: str) -> str:
+    return {
+        ".ts": "ts", ".tsx": "tsx", ".js": "js", ".jsx": "jsx", ".mjs": "js", ".cjs": "js",
+        ".py": "python", ".rb": "ruby", ".go": "go", ".rs": "rust", ".java": "java",
+        ".kt": "kotlin", ".kts": "kotlin", ".scala": "scala", ".php": "php", ".cs": "csharp",
+        ".cpp": "cpp", ".c": "c", ".hpp": "cpp", ".h": "c", ".swift": "swift", ".sql": "sql",
+        ".json": "json", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".ini": "ini", ".env": "bash",
+    }.get(ext.lower(), "")
 
-        # examples/, tests/, benches/ も解析対象に追加
-        for extra in ("examples", "tests", "benches"):
-            extra_dir = crate / extra
-            if extra_dir.exists():
-                files.extend(sorted(iter_source_files(extra_dir, INCLUDE_EXTS)))
+# -------------- OpenAI 呼び出し --------------
 
-        unique_files = []
-        seen = set()
-        for f in files:
-            try:
-                key = f.resolve()
-            except Exception:
-                key = f
-            if key not in seen:
-                unique_files.append(f)
-                seen.add(key)
-
-        print(f"  - {crate} : {len(unique_files)} source files (including examples/tests/benches/build.rs)")
-        for f in unique_files:
-            content = read_text_file(f)
-            if not content.strip():
-                continue
-            # リポジトリからの相対パスで見出しを作る
-            rel = f.relative_to(repo_root)
-            title = f"# {rel.as_posix()}"
-            blocks.append((title, content))
-
-    return blocks, cargo_texts, crates
-
-def chunk_blocks(blocks: List[Tuple[str, str]], max_tokens: int) -> List[str]:
-    chunks: List[str] = []
-    cur: List[str] = []
-    cur_tokens = 0
-
-    for title, body in blocks:
-        unit = f"{title}\n\n{body}\n\n"
-        unit_tokens = count_tokens(unit)
-
-        if unit_tokens > max_tokens:
-            # 大きすぎる単一ファイルは行で割る
-            lines = unit.splitlines(keepends=True)
-            approx_ratio = max(1, math.ceil(unit_tokens / max_tokens))
-            stride = max(1, len(lines) // approx_ratio)
-            for i in range(0, len(lines), stride):
-                piece = "".join(lines[i:i+stride])
-                piece_tokens = count_tokens(piece)
-                if cur_tokens + piece_tokens > max_tokens and cur:
-                    chunks.append("".join(cur))
-                    cur, cur_tokens = [], 0
-                cur.append(piece)
-                cur_tokens += piece_tokens
-            continue
-
-        if cur_tokens + unit_tokens > max_tokens and cur:
-            chunks.append("".join(cur))
-            cur, cur_tokens = [], 0
-        cur.append(unit)
-        cur_tokens += unit_tokens
-
-    if cur:
-        chunks.append("".join(cur))
-    return chunks
-
-# ---------- OpenAI 呼び出し ----------
-def summarize_chunk(client: OpenAI, chunk: str) -> str:
-    # コーディング規約・設計傾向の推定を強化したプロンプト
-    prompt = f"""
-次のコード断片を精読し、README作成に直結する分析を**日本語**で出力してください。
-目的: ソースから推定される「独自のコーディング規約」および「アーキテクチャ設計の傾向」を抽出します。
-
-[1] 要点サマリ（簡潔）
-- 役割/責務、公開API・エントリポイント、設定/重要関数・モジュール
-- 実行フロー/使用例（あれば）
-- 注意点/制約
-- 依存クレートの示唆（あれば）
-
-[2] 推定される独自のコーディング規約（可能な限り）
-各規約を次の形式で列挙:
-- 規約: <短い見出し>
-  説明: <何を/なぜ>
-  根拠: <ファイルパス> からの短い引用(<=80字) を最大3件
-  例外/補足: <該当すれば>
-  確信度: 1-5
-
-（例: 命名・モジュール分割・結果型/エラー処理・所有権/ライフタイム方針・unsafeの可否・非同期/並行・テスト記述・ドキュメンテーションコメント・フォーマッタ/Clippyに従う癖 など）
-
-[3] アーキテクチャ設計の傾向（可能な限り）
-- レイヤ/境界（例: domain/application/infrastructure, hexagonal 等）
-- 依存方向/モジュール結合の強さ
-- 状態管理/不変性の扱い
-- エラーハンドリング戦略（Result/thiserror/anyhow 等）
-- 非同期/並行（tokio/async-std, send+syncの扱い）
-- 型設計/所有権の戦略（newtype/phantom/traitでの抽象化 等）
-- テスト戦略（単体/統合/fixtures/プロパティテスト等）
-- パフォーマンス/安全性の方針（unsafe/アロケーション削減/キャッシュ 等）
-- 採用パターン（DDD/イベント駆動/DI/プラグイン/ECS/状態遷移 など）
-必要に応じて各項目に根拠（ファイルパス + 短い引用）と確信度(1-5)を併記。
-
-出力ルール:
-- 箇条書き中心。引用は20行以内、1項目で最大3件まで。
-- 断片以外の推測は書かない。言い切れない場合は仮説として明記。
-- 断片先頭に含まれる「# <ファイルパス>」見出しのパスを根拠に用いて良い。
-
-=== 断片開始 ===
-{chunk}
-=== 断片終わり ===
-""".strip()
-
-    resp = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-    )
-    return resp.choices[0].message.content.strip()
-
-def generate_readme(client: OpenAI, notes: str, cargo_map: Dict[str, str]) -> str:
-    """
-    LLM に README 本文を生成させる。
-    ディレクトリ構成はここでは生成させず、プレースホルダ <!-- DIR_TREE --> を入れておく。
-    """
-    cargo_sections = []
-    for crate, txt in cargo_map.items():
-        cargo_sections.append(f"### {crate}\n\n```toml\n{txt}\n```")
-    cargo_blob = "\n\n".join(cargo_sections)
-
-    user_prompt = f"""
-あなたは優れた**ソフトウェアアーキテクト兼テクニカルライター**です。
-以下の「要点ノート」と Cargo.toml を統合し、**日本語で分かりやすく詳細な README.md** を生成してください。
-特に「ソースコードから推定される独自のコーディング規約・アーキテクチャ設計の傾向」を整理して明示します。
-
-### 厳守事項
-- **ディレクトリ構成は LLM で生成しない。** README 内の「## ディレクトリ構成」のプレースホルダ `<!-- DIR_TREE -->` をそのまま残すこと（削除・改変禁止）。
-- その他のセクション（概要/セットアップ/ライブラリ/規約/設計/実装のポイント/TODO 等）を作成する。
-- コード引用は20行以内に収める。
-- 断片ごとの仮説は**本文では統合**し、重複は解消。確信度が低い推測は「仮説」と注記。
-
-### 対象読者
-- Rust の基本知識を持つエンジニア
-
-### README の骨子（この順序で出力）
-# プロジェクト名（仮で問題ありません）
-## 概要
-## ディレクトリ構成
-<!-- DIR_TREE -->
-## セットアップ
-## 使用技術・主要ライブラリ
-## 推定されるコーディング規約
-- 命名/整形/モジュール分割/エラー処理/非同期/所有権/テスト/ドキュメント/CIに関する方針などを箇条書き
-- 各項目に簡潔な根拠（ファイルパス）と確信度(1-5)を可能な範囲で付与
-## アーキテクチャ設計の傾向
-- レイヤ/依存方向/境界/抽象化/状態管理/パターン等を要約
-- 必要に応じて図示風の箇条書き（テキストのみ）と根拠・確信度
-## 実装のポイント
-## 今後の課題 / TODO
-
-=== 要点ノート ===
-{notes}
-
-=== Cargo.toml（クレート別）===
-{cargo_blob if cargo_blob else '(該当なし)'}
-""".strip()
-
-    resp = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+def call_chat(model: str, system_prompt: str, user_prompt: str, temperature: float = 0.2, max_tokens: int | None = None) -> str:
+    url = f"{OAI_BASE_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        temperature=0.2,
+        "temperature": temperature,
+    }
+    if max_tokens:
+        payload["max_tokens"] = max_tokens
+
+    resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=120)
+    if resp.status_code != 200:
+        print("[ERROR] OpenAI API error:", resp.status_code, resp.text, file=sys.stderr)
+        raise RuntimeError("OpenAI API error")
+    data = resp.json()
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print("[ERROR] Unexpected OpenAI response:", data, file=sys.stderr)
+        raise
+
+
+def extract_json_array(text: str) -> list[str]:
+    """レスポンステキストから最初の JSON 配列を抽出してパース"""
+    m = re.search(r"\[.*\]", text, flags=re.S)
+    if not m:
+        return []
+    raw = m.group(0)
+    try:
+        arr = json.loads(raw)
+        if isinstance(arr, list):
+            return [str(x) for x in arr]
+    except Exception:
+        pass
+    return []
+
+# -------------- プロンプト --------------
+
+FILE_PICKER_SYSTEM = (
+    """
+あなたは熟練のソフトウェアアーキテクトです。与えられたソースツリーの YAML 構造（structure）と対象の概念に基づき、
+その概念を実装・表現する「主要コード」のファイルパスのみを **厳選** して抽出してください。
+
+必ず守るルール:
+- 出力は **JSON の配列**（文字列の相対パス）**のみ**。説明文は一切不要。
+- `src/` 配下のみを対象。
+- テスト・サンプル・開発補助のアセットは **除外**（例: `test`, `spec`, `mock`, `fixture`, `stories`, `storybook`, `e2e`, `docs`, `dist`, `build` など）。
+- 型定義や設定ファイルは、概念の中核に直接関与する場合のみ含める。
+- 関連度が低いユーティリティや再輸出だけの index は可能な限り除外。
+- どうしても迷う場合は **最小限のセット** を選ぶ。
+"""
+).strip()
+
+FILE_PICKER_USER_TMPL = (
+    """
+# 概念
+{concept}
+
+# structure (srcツリーの完全YAML)
+{structure}
+
+# 期待する出力形式
+["src/feature/a.ts", "src/feature/b.tsx"]
+"""
+).strip()
+
+DOC_WRITER_SYSTEM = (
+    """
+あなたは、非エンジニアも読者に含むプロダクト向けテクニカルライターです。与えられた `related_codes` と `概念` から、
+プロダクトマネージャー・セールス・顧客にも理解しやすい **日本語の Markdown ドキュメント** を作成します。
+
+執筆ポリシー:
+- 専門用語は **平易に言い換え**、必要なら用語集で補足。
+- コードの逐次解説ではなく、 **何を実現するものか** → **なぜ重要か** → **どう動くか** の順で説明。
+- テストや開発用資産には触れない。
+- 読者が最初に知りたいのは価値とフロー。内部詳細は控えめに、要点だけ。
+- 可能なら Mermaid のシーケンス図/フローチャートを 1 つ含める。
+- 最後に "関連ファイル" として使用したパスを列挙。
+
+出力は **純粋な Markdown** のみ。
+"""
+).strip()
+
+DOC_WRITER_USER_TMPL = (
+    """
+# 概念
+{concept}
+
+# related_codes（ファイルごとにラベル済み）
+{related_codes}
+
+# 期待する Markdown セクション例
+# {title}
+## 概要
+## なぜ重要か
+## 基本の流れ
+## 主要コンポーネント
+## 外部/内部インターフェース
+## 例（ユーザー視点のシナリオ）
+## 制約と既知の注意点
+## 用語集
+## 関連ファイル
+"""
+).strip()
+
+COMPRESSOR_SYSTEM = (
+    """
+あなたはソフトウェアアーキテクトです。多数のコード断片を、**重要な振る舞い/ルール/データ構造** の箇条書きに圧縮してください。
+出力は日本語の Markdown 箇条書きのみ。
+"""
+).strip()
+
+# -------------- 主要処理 --------------
+
+def ensure_output_dirs():
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+
+def write_file(path: str, content: str):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+
+def build_related_codes(paths: list[str]) -> tuple[str, list[str]]:
+    """ファイルを読み込み、LLM に渡しやすい形へ整形。
+    returns: (related_codes_text, used_paths)
+    """
+    blocks = []
+    used = []
+    total_len = 0
+
+    for p in paths:
+        if not os.path.exists(p):
+            continue
+        if exclude_dev_asset(p):
+            continue
+        if not is_code_file(p):
+            continue
+        ext = os.path.splitext(p)[1]
+        lang = ext_to_lang(ext)
+        try:
+            with open(p, "r", encoding="utf-8", errors="replace") as f:
+                code = f.read()
+        except Exception:
+            continue
+        header = f"===== file: {p} ====="
+        chunk = f"{header}\n```{lang}\n{code}\n```\n"
+        blocks.append(chunk)
+        used.append(p)
+        total_len += len(chunk)
+        if total_len > MAX_CONTEXT_CHARS:
+            break
+
+    related = "\n\n".join(blocks)
+    return related, used
+
+
+def compress_if_needed(related: str, concept: str) -> str:
+    if len(related) <= MAX_CONTEXT_CHARS:
+        return related
+    # 文字数超過時は分割し、要点に圧縮
+    parts = []
+    idx = 0
+    step = MAX_CONTEXT_CHARS // 2
+    while idx < len(related) and len(parts) < 6:  # 安全のため分割上限
+        chunk = related[idx: idx + step]
+        idx += step
+        uprompt = f"# 概念\n{concept}\n\n# コード断片\n{chunk}"
+        summary = call_chat(MODEL_DOCS, COMPRESSOR_SYSTEM, uprompt, temperature=0.1)
+        parts.append(summary)
+        time.sleep(0.6)
+    merged = "\n".join(parts)
+    return f"<!-- compressed from large related_codes -->\n{merged}"
+
+
+def generate_markdown(concept: str, related_codes_text: str, used_paths: list[str]) -> str:
+    title = f"{concept}"
+    uprompt = DOC_WRITER_USER_TMPL.format(
+        concept=concept,
+        related_codes=related_codes_text,
+        title=title,
     )
-    return resp.choices[0].message.content
+    md = call_chat(MODEL_DOCS, DOC_WRITER_SYSTEM, uprompt, temperature=0.25)
+    # 関連ファイル追記（念のため）
+    tail = "\n\n---\n## 関連ファイル\n" + "\n".join([f"- `{p}`" for p in used_paths]) + "\n"
+    if "## 関連ファイル" not in md:
+        md = md.rstrip() + tail
+    return md
 
-# ---------- メイン ----------
+
+def ensure_mdbook_scaffold(domain: str, concept_files: list[tuple[str, str]]):
+    # index
+    index_md = textwrap.dedent(f"""
+    # {domain or 'プロダクトドキュメント'}
+
+    このサイトはソースコード（Single Source of Truth）から自動生成された、主要概念の読み物です。
+
+    - 生成日時: {time.strftime('%Y-%m-%d %H:%M:%S %Z')}
+    - 対象ディレクトリ: `{SRC_DIR}`
+
+    各章は、該当概念に関する関連コードを解析し、非エンジニアにも読みやすい形でまとめています。
+    """)
+    write_file(os.path.join(OUTPUT_DIR, "index.md"), index_md)
+
+    # book.toml（無ければ作成）
+    book_toml_path = os.path.join(OUTPUT_DIR, "book.toml")
+    if not os.path.exists(book_toml_path):
+        book_toml = textwrap.dedent(
+            f"""
+            [book]
+            title = "{domain or 'Concept Docs'}"
+            authors = ["Generated by GitHub Actions"]
+            language = "ja"
+
+            [build]
+            create-missing = true
+            """
+        )
+        write_file(book_toml_path, book_toml)
+
+    # SUMMARY.md
+    lines = ["# Summary", "", "- [トップ](index.md)"]
+    for title, filename in concept_files:
+        lines.append(f"- [{title}]({filename})")
+    write_file(os.path.join(OUTPUT_DIR, "SUMMARY.md"), "\n".join(lines) + "\n")
+
+
 def main():
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    repo_root = Path(".").resolve()
+    ensure_output_dirs()
 
-    print(f"Repository root: {repo_root}")
-    blocks, cargo_map, crates = collect_blocks(repo_root)
+    domain, concepts = read_concepts(CONCEPTS_FILE)
+    if not concepts:
+        print("[INFO] 概念が無いため処理を終了します。")
+        # mdBook scaffold だけ作る
+        ensure_mdbook_scaffold(domain, [])
+        return
 
-    if not blocks:
-        raise SystemExit(
-            "No source files found. "
-            "Tips: This script scans all crates detected by Cargo.toml with [package]. "
-            "Ensure your Rust crate(s) live under <crate>/(src|examples|tests|benches)/*.rs or build.rs"
-        )
+    # structure を生成
+    structure_yaml = build_structure_yaml(SRC_DIR)
+    write_file(os.path.join(OUTPUT_DIR, "_structure.yaml"), structure_yaml)
 
-    print(f"Total files considered: {len(blocks)}")
+    concept_files: list[tuple[str, str]] = []
 
-    chunks = chunk_blocks(blocks, MAX_TOKENS_CONTEXT)
-    print(f"Chunks created: {len(chunks)}")
+    for concept in concepts:
+        print(f"[INFO] Processing concept: {concept}")
+        uprompt = FILE_PICKER_USER_TMPL.format(concept=concept, structure=structure_yaml)
+        resp = call_chat(MODEL_FILES, FILE_PICKER_SYSTEM, uprompt, temperature=0.1)
+        candidates = extract_json_array(resp)
 
-    notes_list: List[str] = []
-    for i, ch in enumerate(chunks, 1):
-        print(f"Summarizing chunk {i}/{len(chunks)}")
-        summary = summarize_chunk(client, ch)
-        notes_list.append(f"## Chunk {i}\n{summary}")
+        # フォールバック: structure から単純検索（念のため）
+        if not candidates:
+            print(f"[WARN] LLM がファイルを返しませんでした。フォールバック検索を試みます。")
+            all_files = [p for p in list_all_files(SRC_DIR) if p.startswith(f"{SRC_DIR}/")]
+            key = slugify(concept).replace("-", "")
+            candidates = [p for p in all_files if key and key.lower() in p.lower()]
 
-    all_notes = "\n\n".join(notes_list)
+        # フィルタリング
+        files = []
+        for p in candidates:
+            p = p.strip().lstrip("./")
+            if not p.startswith(f"{SRC_DIR}/"):
+                continue
+            if exclude_dev_asset(p):
+                continue
+            if not is_code_file(p):
+                continue
+            if not os.path.exists(p):
+                continue
+            files.append(p)
+        files = list(dict.fromkeys(files))  # de-dup
 
-    # ディレクトリツリーを機械生成
-    print("Building directory trees …")
-    dir_trees_md = build_dir_trees(repo_root, crates)
+        # 関連コード整形
+        related, used_paths = build_related_codes(files)
+        if not related:
+            related = "<!-- no related codes found -->"
 
-    print("Generating README.md …")
-    readme_md = generate_readme(client, all_notes, cargo_map)
+        related = compress_if_needed(related, concept)
 
-    # プレースホルダ置換。なければ末尾に追加。
-    placeholder = "<!-- DIR_TREE -->"
-    if placeholder in readme_md:
-        readme_md = readme_md.replace(placeholder, dir_trees_md.strip())
-    else:
-        # セクションが無い場合に備えて追記
-        readme_md = (
-            readme_md.rstrip()
-            + "\n\n## ディレクトリ構成\n\n"
-            + dir_trees_md.strip()
-            + "\n"
-        )
+        # ドキュメント生成
+        md = generate_markdown(concept, related, used_paths)
 
-    Path("README.md").write_text(readme_md, encoding="utf-8")
-    print("README.md written.")
+        # 保存
+        slug = slugify(concept)
+        out_path = os.path.join(OUTPUT_DIR, f"{slug}.md")
+        write_file(out_path, md)
+        concept_files.append((concept, f"{slug}.md"))
+        time.sleep(0.6)
+
+    # mdBook セットアップ
+    ensure_mdbook_scaffold(domain, concept_files)
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print("[ERROR] 処理に失敗しました:", e, file=sys.stderr)
+        sys.exit(1)
+        
