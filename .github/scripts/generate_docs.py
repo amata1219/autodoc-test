@@ -381,15 +381,15 @@ def generate_markdown(concept: str, related_codes_text: str, used_paths: list[st
     # セーフティ: 関連ファイルを必ず完全列挙（GitHub リンク付き）
     if "## 関連ファイル" not in md:
         links = [f"- `{p}` — [{p}]({repo_base}{p})" for p in used_paths]
-        tail = "\n"
-
-        tail = f"\n## 関連ファイル\n{'\n'.join(links) if links else '- (なし)'}"
+        tail = "\n\n---\n\n"
+        tail += "## 関連ファイル\n" + ("\n".join(links) if links else "- (なし)")
         md = md.rstrip() + tail
 
     # セーフティ: 根拠注釈が無ければ最低限の一覧を追加
     if "## 根拠注釈" not in md:
         refs = [f"[{i+1}]: {repo_base}{p}" for i, p in enumerate(used_paths)]
-        tail2 = f"\n## 根拠注釈\n{'\n'.join(refs) if refs else '(該当なし)'}"
+        tail2 = "\n\n---\n\n"
+        tail2 += "## 根拠注釈\n" + ("\n".join(refs) if refs else "(該当なし)")
         md += tail2
 
     return md
