@@ -177,63 +177,63 @@
                     <main>
                         <h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>ハンドルネームは、ユーザーがオンラインで自分を識別するための名前です。この名前は、個人のプライバシーを保護しつつ、他のユーザーとのコミュニケーションを円滑にするために重要です。</p>
+<p>ハンドルネームは、ユーザーがオンラインでのアイデンティティを表現するための名前です。この名前は、特にフォーラムやソーシャルメディアなどのプラットフォームで使用されます。ハンドルネームは、ユーザーが自分自身を特定するための重要な要素であり、他のユーザーとのコミュニケーションを円滑にする役割を果たします。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>ハンドルネームは、ユーザーのアイデンティティを形成し、コミュニティ内での認知度を高めます。また、他のユーザーと区別するための重要な要素であり、特にオンラインプラットフォームでは、個人情報を公開せずに交流する手段として機能します。</p>
+<p>ハンドルネームは、ユーザーが自分の個性や興味を反映させる手段です。適切なハンドルネームを選ぶことで、他のユーザーとの関係を築きやすくなり、コミュニティ内での認知度を高めることができます。また、プライバシーを保護するためにも、実名ではなくハンドルネームを使用することが一般的です。</p>
 <h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
 <ol>
-<li>ユーザーがハンドルネームを入力します。</li>
-<li>システムがそのハンドルネームの有効性を確認します。</li>
-<li>有効な場合、ハンドルネームが登録されます。</li>
-<li>登録されたハンドルネームは、他のユーザーとのやり取りに使用されます。</li>
+<li>ユーザーがハンドルネームを作成する。</li>
+<li>システムがハンドルネームの有効性を検証する（空でないか、文字数が適切かなど）。</li>
+<li>有効なハンドルネームが登録され、ユーザーのプロフィールに関連付けられる。</li>
+<li>ユーザーはこのハンドルネームを使用して他のユーザーと交流する。</li>
 </ol>
 <pre><code class="language-mermaid">sequenceDiagram
     participant User
     participant System
     User-&gt;&gt;System: ハンドルネームを入力
-    System--&gt;&gt;User: 有効性を確認
-    alt 有効
-        System--&gt;&gt;User: ハンドルネームを登録
-    else 無効
-        System--&gt;&gt;User: エラーメッセージを表示
+    System-&gt;&gt;System: 有効性を検証
+    alt 有効な場合
+        System-&gt;&gt;User: ハンドルネームを登録
+    else 無効な場合
+        System-&gt;&gt;User: エラーメッセージを表示
     end
 </code></pre>
 <h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
 <ul>
-<li><strong>ハンドルネームのバリデーション</strong>: 入力されたハンドルネームが空でないか、文字数制限を超えていないかを確認します。</li>
-<li><strong>ハンドルネームの登録</strong>: 有効なハンドルネームをデータベースに保存します。</li>
-<li><strong>ハンドルネームの管理</strong>: ハンドルネームの変更や削除を行うための機能を提供します。</li>
+<li><strong>HandleId</strong>: ハンドルネームを一意に識別するためのID。UUIDを使用して生成されます。</li>
+<li><strong>HandleName</strong>: ユーザーが入力するハンドルネームそのもの。文字数制限や空文字のチェックが行われます。</li>
 </ul>
 <h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
 <ul>
-<li><strong>外部インターフェース</strong>: ユーザーがハンドルネームを入力するためのフォーム。</li>
-<li><strong>内部インターフェース</strong>: バリデーションや登録処理を行うAPIエンドポイント。</li>
+<li><strong>作成エンドポイント</strong>: 新しいハンドルネームを作成するためのAPI。</li>
+<li><strong>削除エンドポイント</strong>: 既存のハンドルネームを削除するためのAPI。</li>
+<li><strong>リストエンドポイント</strong>: 登録されているハンドルネームの一覧を取得するためのAPI。</li>
+<li><strong>リネームエンドポイント</strong>: 既存のハンドルネームを変更するためのAPI。</li>
 </ul>
 <h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
 <ol>
-<li>ユーザーが「@example_user」というハンドルネームを入力します。</li>
-<li>システムがそのハンドルネームが空でないこと、文字数が適切であることを確認します。</li>
-<li>問題がなければ、「@example_user」が正常に登録され、他のユーザーと交流できるようになります。</li>
+<li>ユーザーが「CoolCat」というハンドルネームを入力します。</li>
+<li>システムが「CoolCat」が空でなく、文字数制限を満たしているかを確認します。</li>
+<li>問題がなければ、「CoolCat」がユーザーのプロフィールに登録され、他のユーザーと交流する際に使用されます。</li>
 </ol>
 <h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
 <ul>
-<li>ハンドルネームは最大100文字までとし、特定の文字数制限があります。</li>
-<li>空のハンドルネームは許可されていません。</li>
-<li>特殊文字や不適切な内容を含むハンドルネームは登録できません。</li>
+<li>ハンドルネームは空であってはならず、最大文字数を超えてはいけません。</li>
+<li>特殊文字や不適切な言葉を含むハンドルネームは拒否される可能性があります。</li>
 </ul>
 <h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
 <ul>
-<li><strong>ハンドルネーム</strong>: オンラインでのユーザーの識別名。</li>
-<li><strong>バリデーション</strong>: 入力されたデータが正しいかどうかを確認するプロセス。</li>
+<li><strong>ハンドルネーム</strong>: オンラインでのユーザー名やニックネーム。</li>
+<li><strong>UUID</strong>: Universally Unique Identifierの略で、一意の識別子を生成するための標準。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
+<li><code>src/common/handle/id.rs</code></li>
 <li><code>src/common/handle/name.rs</code></li>
 <li><code>src/endpoints/handle/create/mod.rs</code></li>
 <li><code>src/endpoints/handle/delete/mod.rs</code></li>
-<li><code>src/endpoints/handle/rename/mod.rs</code></li>
 <li><code>src/endpoints/handle/list/mod.rs</code></li>
-<li><code>src/endpoints/handle/count/mod.rs</code></li>
+<li><code>src/endpoints/handle/rename/mod.rs</code></li>
 </ul>
 
                     </main>
