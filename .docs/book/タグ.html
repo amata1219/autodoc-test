@@ -177,78 +177,56 @@
                     <main>
                         <h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>タグは、情報を整理し、関連性を持たせるための重要な要素です。本システムでは、タグの階層構造や言語グループを管理し、タグ間の関係性を提案・評価する機能を提供します。</p>
+<p>タグは、情報を分類・整理するためのラベルです。特に、コンテンツやデータを特定のカテゴリに関連付ける際に使用されます。タグは、ユーザーが情報を見つけやすくし、関連するコンテンツを簡単に探索できるようにするための重要な要素です。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>タグを適切に管理することで、情報の検索性や整理が向上し、ユーザーが必要な情報に迅速にアクセスできるようになります。また、タグの関係性を評価することで、関連情報をより効果的に提示することが可能になります。</p>
+<p>タグを使用することで、情報の整理が容易になり、ユーザーは自分の興味に合ったコンテンツを迅速に見つけることができます。また、タグはデータの関連性を示すため、分析やレポート作成の際にも役立ちます。特に、異なるタグ間の関係を理解することは、情報の相互作用を把握する上で重要です。</p>
 <h2 id="基本の流れ"><a class="header" href="#基本の流れ">基本の流れ</a></h2>
 <ol>
-<li><strong>タグの作成</strong>: ユーザーが新しいタグを作成します。</li>
-<li><strong>タグの提案</strong>: タグ間の関係性を提案します（例: 包含関係や同値関係）。</li>
-<li><strong>タグの評価</strong>: 提案された関係性を評価し、必要に応じて修正します。</li>
-<li><strong>タグの検索</strong>: タグを使用して関連情報を検索します。</li>
+<li><strong>タグの作成</strong>: ユーザーやシステムが新しいタグを作成します。</li>
+<li><strong>タグの関連付け</strong>: 作成したタグを特定のコンテンツやデータに関連付けます。</li>
+<li><strong>タグの検索</strong>: ユーザーがタグを使用して関連するコンテンツを検索します。</li>
+<li><strong>タグの管理</strong>: タグの編集や削除を行い、タグの整合性を保ちます。</li>
 </ol>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant User
-    participant System
-    User-&gt;&gt;System: タグを作成
-    System--&gt;&gt;User: タグ作成完了
-    User-&gt;&gt;System: タグ関係を提案
-    System--&gt;&gt;User: 提案完了
-    User-&gt;&gt;System: 提案を評価
-    System--&gt;&gt;User: 評価結果
-    User-&gt;&gt;System: タグを検索
-    System--&gt;&gt;User: 検索結果
-</code></pre>
 <h2 id="主要コンポーネント"><a class="header" href="#主要コンポーネント">主要コンポーネント</a></h2>
 <ul>
-<li><strong>タグ階層 (TagHierarchy)</strong>: タグの上位・下位関係を管理します。</li>
-<li><strong>言語グループ (LanguageGroup)</strong>: タグが属する言語を管理します。</li>
-<li><strong>提案操作 (ProposalOperation)</strong>: タグの提案状態を管理します。</li>
-<li><strong>Redis タグ情報 (RedisTagInfo)</strong>: タグの情報をRedisに保存し、効率的に管理します。</li>
-<li><strong>タグ関係 (TagRelation)</strong>: タグ間の関係性を定義し、検証します。</li>
+<li><strong>タグ階層</strong>: タグ間の関係を示すための構造。上位タグ、同値タグ、下位タグの関係を持つ。</li>
+<li><strong>言語グループ</strong>: タグが関連する言語を示すグループ。日本語、英語、韓国語など。</li>
+<li><strong>提案操作</strong>: タグ関係に対する提案を管理するための機能。</li>
 </ul>
 <h2 id="外部内部インターフェース"><a class="header" href="#外部内部インターフェース">外部/内部インターフェース</a></h2>
 <ul>
-<li><strong>APIエンドポイント</strong>:
-<ul>
-<li><code>ListRelatedTags</code>: タグのリストを取得します。</li>
-<li><code>ProposeTagRelation</code>: タグの関係性を提案します。</li>
-</ul>
-</li>
-<li><strong>データベース</strong>: ScyllaDBを使用してタグ情報を管理します。</li>
+<li><strong>APIエンドポイント</strong>: タグの作成、取得、更新、削除を行うためのRESTful API。</li>
+<li><strong>データベースインターフェース</strong>: タグ情報を保存・取得するためのデータベースとのインターフェース。</li>
 </ul>
 <h2 id="例ユーザー視点のシナリオ"><a class="header" href="#例ユーザー視点のシナリオ">例（ユーザー視点のシナリオ）</a></h2>
 <ol>
-<li>ユーザーが「プログラミング」というタグを作成します。</li>
-<li>システムが「プログラミング」と「コーディング」の関係性を提案します。</li>
-<li>ユーザーが提案を評価し、承認します。</li>
-<li>ユーザーが「プログラミング」タグを使って関連する情報を検索します。</li>
+<li>ユーザーが「旅行」というタグを作成します。</li>
+<li>ユーザーは「旅行」に関連する記事や写真にこのタグを付けます。</li>
+<li>他のユーザーが「旅行」タグを検索し、関連するコンテンツを見つけます。</li>
+<li>ユーザーは、特定の旅行に関する提案を行い、他のユーザーと情報を共有します。</li>
 </ol>
 <h2 id="制約と既知の注意点"><a class="header" href="#制約と既知の注意点">制約と既知の注意点</a></h2>
 <ul>
-<li>タグのリストは、最大で10件まで表示されます（<code>PAGE_SIZE</code>）。</li>
-<li>タグの関係性を提案する際、既存のタグとの整合性を確認する必要があります。</li>
-<li>エラーハンドリングが適切に行われていない場合、ユーザーに不明なエラーメッセージが表示されることがあります。</li>
+<li>タグ名は特定の文字数制限があり、長すぎるタグ名は受け付けられません。</li>
+<li>タグの階層関係が正しく設定されていない場合、検索結果が不正確になる可能性があります。</li>
+<li>タグの削除は、関連するコンテンツに影響を与えるため、慎重に行う必要があります。</li>
 </ul>
 <h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
 <ul>
-<li><strong>タグ (Tag)</strong>: 情報を分類するためのラベル。</li>
-<li><strong>階層 (Hierarchy)</strong>: タグ間の上位・下位関係。</li>
-<li><strong>提案 (Proposal)</strong>: タグ間の関係性を示す提案。</li>
-<li><strong>安定性 (Stability)</strong>: タグの信頼性や確実性を示す指標。</li>
+<li><strong>タグ</strong>: コンテンツを分類するためのラベル。</li>
+<li><strong>階層</strong>: タグ間の関係を示す構造。</li>
+<li><strong>言語グループ</strong>: タグが関連する言語のカテゴリ。</li>
+<li><strong>提案操作</strong>: タグ関係に対する提案を管理する機能。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
-<li><code>TagHierarchy</code></li>
-<li><code>LanguageGroup</code></li>
-<li><code>ProposalOperation</code></li>
-<li><code>RedisTagInfo</code></li>
-<li><code>TagRelation</code></li>
-<li><code>TagInfo</code></li>
-<li><code>TagName</code></li>
-<li><code>TopTagId</code></li>
-<li><code>Endpoints</code></li>
-<li><code>エラーハンドリング</code></li>
+<li><code>src/common/tag/hierarchy.rs</code></li>
+<li><code>src/common/tag/language_group.rs</code></li>
+<li><code>src/common/tag/non_top_tag.rs</code></li>
+<li><code>src/common/tag/relation.rs</code></li>
+<li><code>src/endpoints/tag/list/dsl.rs</code></li>
+<li><code>src/endpoints/tag/rating/get/dsl.rs</code></li>
+<li><code>src/endpoints/tag/search/dsl.rs</code></li>
 </ul>
 
                     </main>
