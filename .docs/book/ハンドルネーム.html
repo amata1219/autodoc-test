@@ -176,54 +176,47 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ハンドルネーム"><a class="header" href="#ハンドルネーム">ハンドルネーム</a></h1>
-<p>ハンドルネームは、ユーザーがオンラインでの活動やコミュニケーションに使用する仮名です。この名前は、個人の特定を避けつつ、他者とのやり取りを可能にします。</p>
+<p>ハンドルネームは、ユーザーがオンラインで使用するニックネームや識別子です。これにより、ユーザーは匿名性を保ちながら他者とコミュニケーションを取ることができます。</p>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>ハンドルネームは、特にソーシャルメディアやオンラインフォーラムで使用されることが多く、ユーザーが匿名性を保ちながら自己表現を行う手段となります。このシステムでは、ハンドルネームを管理するためのデータ構造や操作が定義されています。</p>
+<p>ハンドルネームは、特にソーシャルメディアやオンラインフォーラムで一般的に使用される概念です。ユーザーは自分の本名を明かさずに、個性を表現したり、他のユーザーと交流したりするためにハンドルネームを選びます。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>ハンドルネームは、ユーザーが自分のアイデンティティを自由に表現できる場を提供します。また、個人情報を保護しつつ、コミュニティ内での交流を促進する役割も果たします。適切なハンドルネームの管理は、ユーザーエクスペリエンスを向上させるために不可欠です。</p>
+<p>ハンドルネームは、ユーザーのプライバシーを保護するだけでなく、個々のアイデンティティを形成する重要な要素です。特にオンライン環境では、匿名性がユーザーの自由な表現を促進し、安心して参加できる場を提供します。</p>
 <h2 id="仕組みと基本の流れ"><a class="header" href="#仕組みと基本の流れ">仕組みと基本の流れ</a></h2>
-<p>ハンドルネームは、ユーザーアカウントに関連付けられ、データベースに保存されます。ユーザーは新しいハンドルネームを作成したり、既存のものを変更したりできます。これらの操作は、APIを通じて行われ、データベースに対するCRUD（作成、読み取り、更新、削除）操作が実行されます。</p>
+<p>ハンドルネームは、ユーザーがアカウントを作成する際に設定されます。システムは、ハンドルネームの有効性を確認し、必要に応じて制約を適用します。ユーザーは後からハンドルネームを変更することも可能ですが、特定の条件が満たされている必要があります。</p>
+<h2 id="仕様特徴詳細"><a class="header" href="#仕様特徴詳細">仕様・特徴（詳細）</a></h2>
 <h3 id="データ状態ルール"><a class="header" href="#データ状態ルール">データ・状態・ルール</a></h3>
 <ul>
-<li><strong>ハンドルネーム</strong>: ユーザーが設定する名前。最大文字数は100文字で、特定の文字コスト制限があります<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">1</a>。</li>
-<li><strong>ハンドルID</strong>: 各ハンドルネームに関連付けられた一意の識別子。UUID形式で生成されます<a href="%5Bsrc/common/handle/id.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/id.rs)">2</a>。</li>
-<li><strong>共有数</strong>: 各ハンドルネームが他のユーザーにどれだけ共有されているかを示す数値です<a href="%5Bsrc/common/handle/share_count.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/share_count.rs)">3</a>。</li>
+<li><strong>ハンドルネームの最大文字数</strong>: 100文字まで許可されます。この制約は、特にCJK（中国語、日本語、韓国語）文字を考慮して設定されています<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">1</a>。</li>
+<li><strong>ハンドルネームの形式</strong>: 空文字は許可されず、特定の文字数を超える場合はエラーが発生します<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">2</a>。</li>
 </ul>
 <h3 id="フローとアルゴリズム必要なら-mermaid-図"><a class="header" href="#フローとアルゴリズム必要なら-mermaid-図">フローとアルゴリズム（必要なら Mermaid 図）</a></h3>
-<p>以下は、ハンドルネームの作成から取得までの基本的なフローを示します。</p>
+<p>以下のフローは、ハンドルネームの作成と検証のプロセスを示しています。</p>
 <pre><code class="language-mermaid">graph TD;
-    A[ユーザーがハンドルネームを作成] --&gt; B{ハンドルネームの検証};
-    B -- 成功 --&gt; C[データベースに保存];
-    B -- 失敗 --&gt; D[エラーメッセージを表示];
-    C --&gt; E[ハンドルネームの取得];
-    E --&gt; F[ユーザーに表示];
+    A[ユーザーがハンドルネームを入力] --&gt; B{入力が有効か？};
+    B -- はい --&gt; C[ハンドルネームを保存];
+    B -- いいえ --&gt; D[エラーメッセージを表示];
 </code></pre>
 <h3 id="例外コーナーケース既知の落とし穴"><a class="header" href="#例外コーナーケース既知の落とし穴">例外・コーナーケース・既知の落とし穴</a></h3>
 <ul>
-<li>ハンドルネームが空の場合や、文字数が制限を超える場合はエラーが発生します<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">4</a>。</li>
-<li>匿名名義（空のハンドルネーム）は削除できないため、注意が必要です<a href="%5Bsrc/endpoints/handle/delete/dsl.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/delete/dsl.rs)">5</a>。</li>
+<li><strong>空文字</strong>: ハンドルネームとして空文字を入力した場合、エラーが発生します<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">3</a>。</li>
+<li><strong>文字数制限</strong>: 設定された文字数を超えるハンドルネームは受け付けられません<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">4</a>。</li>
 </ul>
 <h3 id="制約前提非機能要件"><a class="header" href="#制約前提非機能要件">制約・前提・非機能要件</a></h3>
 <ul>
-<li>ハンドルネームは最大100文字で、特定の文字コストを超えてはいけません<a href="%5Bsrc/common/handle/name.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/common/handle/name.rs)">1</a>。</li>
-<li>データベースの操作は非同期で行われ、エラーハンドリングが必要です<a href="%5Bsrc/endpoints/handle/create/interpreter.rs%5D(https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/handle/create/interpreter.rs)">6</a>。</li>
+<li>ハンドルネームは一意である必要があります。すでに使用されているハンドルネームを再利用することはできません。</li>
+<li>システムは、ハンドルネームの変更を行う際に、特定の条件（例えば、一定の時間が経過していること）を満たす必要があります。</li>
 </ul>
 <h2 id="利用シナリオユーザー視点"><a class="header" href="#利用シナリオユーザー視点">利用シナリオ（ユーザー視点）</a></h2>
-<ol>
-<li>ユーザーが新しいアカウントを作成する際に、ハンドルネームを設定します。</li>
-<li>既存のハンドルネームを変更したい場合、ユーザーは新しい名前を入力し、システムがそれを検証します。</li>
-<li>ユーザーは自分のハンドルネームを使用して、他のユーザーと交流します。</li>
-</ol>
+<p>ユーザーは、アカウント作成時に自分の好きなハンドルネームを選びます。このハンドルネームは、他のユーザーとのコミュニケーションやプロフィール表示に使用されます。ユーザーは、必要に応じてハンドルネームを変更することもできますが、変更には制約があることを理解しておく必要があります。</p>
 <h2 id="運用のヒント--ベストプラクティスbad-knowhow-可"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
 <ul>
-<li>ハンドルネームの変更は、ユーザーが混乱しないように慎重に行うべきです。変更履歴を保持することが推奨されます。</li>
-<li>ユーザーに対して、ハンドルネームの選択に関するガイドラインを提供することで、適切な名前を選ぶ手助けをします。</li>
+<li>ハンドルネームを選ぶ際は、他のユーザーにとって覚えやすく、かつ自分の個性を反映したものを選ぶと良いでしょう。</li>
+<li>ハンドルネームの変更は慎重に行い、変更後は他のユーザーに通知することをお勧めします。</li>
 </ul>
-<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<h2 id="用語集本文と対応づけて"><a class="header" href="#用語集本文と対応づけて">用語集（本文と対応づけて）</a></h2>
 <ul>
-<li><strong>ハンドルネーム</strong>: オンラインでのユーザーの仮名。</li>
-<li><strong>ハンドルID</strong>: ハンドルネームに関連付けられた一意の識別子。</li>
-<li><strong>共有数</strong>: ハンドルネームが他のユーザーにどれだけ共有されているかを示す数値。</li>
+<li><strong>ハンドルネーム</strong>: オンラインで使用されるニックネームや識別子。</li>
+<li><strong>CJK</strong>: 中国語、日本語、韓国語の文字を含む言語群。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>

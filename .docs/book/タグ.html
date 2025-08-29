@@ -176,50 +176,53 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="タグ"><a class="header" href="#タグ">タグ</a></h1>
-<p>タグは、情報やデータを分類・整理するためのラベルです。特に、関連性のある情報をグループ化し、検索やフィルタリングを容易にするために使用されます。</p>
+<p>タグは、情報を整理し、特定のテーマやカテゴリに関連付けるためのラベルです。これにより、データの検索やフィルタリングが容易になります。</p>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>タグは、特定のコンテンツやデータに対して付与されるラベルであり、情報の整理や検索を効率化します。タグは、階層的な関係を持つことができ、上位タグや下位タグとの関連性を示すことができます。</p>
+<p>タグは、データやコンテンツを分類するための重要な要素です。特に、ユーザーが情報を効率的に見つけるために役立ちます。タグは階層的に構成されることがあり、上位タグや下位タグ、同値タグなどの関係性を持つことができます。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>タグを使用することで、情報の整理が容易になり、ユーザーが必要な情報を迅速に見つけることができます。また、タグの階層構造により、関連情報を視覚的に把握しやすくなります。</p>
+<p>タグを使用することで、情報の整理が進み、ユーザーは必要な情報に迅速にアクセスできます。また、タグの関係性を利用することで、関連する情報を簡単に見つけることができ、ユーザー体験が向上します。</p>
 <h2 id="仕組みと基本の流れ"><a class="header" href="#仕組みと基本の流れ">仕組みと基本の流れ</a></h2>
-<p>タグは、特定のデータに関連付けられ、階層的な関係を持つことができます。タグの関係は、上位タグ、同値タグ、下位タグとして分類されます。これにより、情報の関連性を明確にし、ユーザーが情報を効率的に検索できるようにします。</p>
+<p>タグは、特定のデータに対して付与され、データベースに保存されます。ユーザーがタグを検索したり、フィルタリングしたりする際に、システムはこれらのタグを参照して関連情報を提供します。タグの関係性は、データの整合性を保ちながら、ユーザーがより良い検索結果を得るために利用されます。</p>
 <h2 id="仕様特徴詳細"><a class="header" href="#仕様特徴詳細">仕様・特徴（詳細）</a></h2>
 <h3 id="データ状態ルール"><a class="header" href="#データ状態ルール">データ・状態・ルール</a></h3>
 <ul>
-<li>タグは、<code>TagId</code>、<code>TagName</code>、<code>TagHierarchy</code>などのデータ構造を持ちます。</li>
-<li>タグは、上位タグ、同値タグ、下位タグの関係を持つことができます。</li>
-<li>タグの階層は、<code>TagHierarchy</code>列挙型で定義され、上位（Super）、同値（Equivalent）、下位（Sub）の3つの状態があります<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/hierarchy.rs">1</a>。</li>
+<li><strong>タグ階層 (TagHierarchy)</strong>: タグは上位、同値、下位の関係を持ち、整数からの変換や表示用フォーマットが提供されています。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/hierarchy.rs">1</a></li>
+<li><strong>言語グループ (LanguageGroup)</strong>: タグは異なる言語に対応しており、言語からの変換が可能です。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/language_group.rs">2</a></li>
+<li><strong>非トップタグID (NonTopTagId)</strong>: トップタグでないことを保証するための構造体が存在します。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/non_top_tag.rs">3</a></li>
+<li><strong>提案操作 (ProposalOperation)</strong>: タグの評価状態を示すための列挙型が定義されています。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/proposal_operation.rs">4</a></li>
+<li><strong>Redisタグ情報 (RedisTagInfo)</strong>: タグの順序や評価、提案の有無を管理するためのビットフィールドが使用されています。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/redis_tag_info.rs">5</a></li>
 </ul>
 <h3 id="フローとアルゴリズム必要なら-mermaid-図"><a class="header" href="#フローとアルゴリズム必要なら-mermaid-図">フローとアルゴリズム（必要なら Mermaid 図）</a></h3>
+<p>以下は、タグの提案と評価のフローを示す図です。</p>
 <pre><code class="language-mermaid">graph TD;
-    A[タグ] --&gt;|上位| B[上位タグ]
-    A --&gt;|同値| C[同値タグ]
-    A --&gt;|下位| D[下位タグ]
+    A[ユーザーがタグを提案] --&gt; B{提案の評価}
+    B --&gt;|高評価| C[タグを保存]
+    B --&gt;|低評価| D[提案を撤回]
+    C --&gt; E[タグの検索]
+    E --&gt; F[関連情報を表示]
 </code></pre>
-<p>この図は、タグが持つ階層的な関係を示しています。</p>
 <h3 id="例外コーナーケース既知の落とし穴"><a class="header" href="#例外コーナーケース既知の落とし穴">例外・コーナーケース・既知の落とし穴</a></h3>
 <ul>
-<li>同じタグ間の関係を評価することはできません。これは、<code>validate_tag_relation</code>関数によって制御されています<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/relation.rs">2</a>。</li>
-<li>同値関係では、下位タグのIDが上位タグのIDより小さくなければなりません。</li>
+<li>タグの提案が低評価の場合、提案が撤回される可能性があります。この場合、ユーザーは再提案を行う必要があります。</li>
+<li>タグの階層が不適切に設定されていると、検索結果が不正確になることがあります。</li>
 </ul>
 <h3 id="制約前提非機能要件"><a class="header" href="#制約前提非機能要件">制約・前提・非機能要件</a></h3>
 <ul>
-<li>タグ名は、最大100文字の制限があります<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/tag/tag_name.rs">3</a>。</li>
-<li>タグは、特定の言語グループに関連付けられます。</li>
+<li>タグの提案や評価は、適切なエラーハンドリングを行う必要があります。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/interpreter/validate_topology.rs">6</a></li>
+<li>タグ情報は、RedisやScyllaDBを使用して管理されます。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/mod.rs">7</a></li>
 </ul>
 <h2 id="利用シナリオユーザー視点"><a class="header" href="#利用シナリオユーザー視点">利用シナリオ（ユーザー視点）</a></h2>
-<p>ユーザーは、特定の情報を検索する際にタグを利用します。例えば、特定の言語に関連する情報を検索する場合、ユーザーはその言語に関連付けられたタグを使用して、情報を迅速に見つけることができます。</p>
+<p>ユーザーは、特定のトピックに関連するタグを検索し、関連情報を迅速に見つけることができます。また、ユーザーが新しいタグを提案することで、情報の整理が進みます。</p>
 <h2 id="運用のヒント--ベストプラクティスbad-knowhow-可"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
 <ul>
-<li>タグの階層構造を適切に設計することで、情報の検索効率を向上させることができます。</li>
-<li>タグの命名規則を統一することで、ユーザーがタグを理解しやすくなります。</li>
+<li>タグの階層を適切に設定することで、検索結果の精度が向上します。</li>
+<li>提案されたタグは、定期的に評価し、不要なタグは撤回することが推奨されます。</li>
 </ul>
 <h2 id="用語集本文と対応づけて"><a class="header" href="#用語集本文と対応づけて">用語集（本文と対応づけて）</a></h2>
 <ul>
-<li><strong>タグ</strong>: 情報を分類するためのラベル。</li>
-<li><strong>上位タグ</strong>: 他のタグを包含するタグ。</li>
-<li><strong>下位タグ</strong>: 他のタグに包含されるタグ。</li>
-<li><strong>同値タグ</strong>: 同じ意味を持つタグ。</li>
+<li><strong>タグ</strong>: データを分類するためのラベル。</li>
+<li><strong>階層</strong>: タグ間の上位・下位関係。</li>
+<li><strong>提案</strong>: 新しいタグを追加するためのリクエスト。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
@@ -239,6 +242,19 @@
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/interpreter.rs">src/endpoints/tag/list/interpreter.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/list/mod.rs">src/endpoints/tag/list/mod.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/mod.rs">src/endpoints/tag/proposal/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/dsl/mod.rs">src/endpoints/tag/proposal/propose/dsl/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/dsl/propose.rs">src/endpoints/tag/proposal/propose/dsl/propose.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/dsl/relate_hierarchical_tags.rs">src/endpoints/tag/proposal/propose/dsl/relate_hierarchical_tags.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/dsl/validate_topology.rs">src/endpoints/tag/proposal/propose/dsl/validate_topology.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/endpoint.rs">src/endpoints/tag/proposal/propose/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/interpreter/mod.rs">src/endpoints/tag/proposal/propose/interpreter/mod.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/interpreter/propose.rs">src/endpoints/tag/proposal/propose/interpreter/propose.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/interpreter/update_tag_list.rs">src/endpoints/tag/proposal/propose/interpreter/update_tag_list.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/propose/interpreter/validate_topology.rs">src/endpoints/tag/proposal/propose/interpreter/validate_topology.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/withdraw/dsl.rs">src/endpoints/tag/proposal/withdraw/dsl.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/withdraw/endpoint.rs">src/endpoints/tag/proposal/withdraw/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/withdraw/interpreter.rs">src/endpoints/tag/proposal/withdraw/interpreter.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/proposal/withdraw/mod.rs">src/endpoints/tag/proposal/withdraw/mod.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/dsl.rs">src/endpoints/tag/rating/get/dsl.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/endpoint.rs">src/endpoints/tag/rating/get/endpoint.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/rating/get/interpreter.rs">src/endpoints/tag/rating/get/interpreter.rs</a></li>
@@ -254,7 +270,6 @@
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/dsl.rs">src/endpoints/tag/search/dsl.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/endpoint.rs">src/endpoints/tag/search/endpoint.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/interpreter.rs">src/endpoints/tag/search/interpreter.rs</a></li>
-<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/tag/search/mod.rs">src/endpoints/tag/search/mod.rs</a></li>
 </ul>
 <h2 id="根拠注釈"><a class="header" href="#根拠注釈">根拠注釈</a></h2>
 

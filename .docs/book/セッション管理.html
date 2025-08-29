@@ -176,69 +176,57 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="セッション管理"><a class="header" href="#セッション管理">セッション管理</a></h1>
-<p>セッション管理は、ユーザーがアプリケーションにログインしている間の状態を保持し、ユーザーの操作を追跡するための仕組みです。これにより、ユーザーはアプリケーションを利用する際に、再度ログインすることなくスムーズに操作を続けることができます。</p>
+<p>セッション管理は、ユーザーのログイン状態を維持し、セキュリティを確保するための仕組みです。これにより、ユーザーがアプリケーションを利用する際に、再度ログインすることなく、連続してサービスを利用できるようになります。</p>
 <h2 id="概要"><a class="header" href="#概要">概要</a></h2>
-<p>セッション管理は、ユーザーの認証情報や状態を保持するために、セッションIDやリフレッシュトークンを使用します。これにより、ユーザーは一度ログインすれば、一定の時間内は再度認証を求められることなくサービスを利用できます。</p>
+<p>セッション管理は、ユーザーの認証情報を保持し、セッションの有効期限を管理する機能です。これにより、ユーザーがアプリケーションを利用する際の利便性を向上させるとともに、セキュリティリスクを軽減します。</p>
 <h2 id="なぜ重要か"><a class="header" href="#なぜ重要か">なぜ重要か</a></h2>
-<p>セッション管理は、ユーザーエクスペリエンスの向上に寄与します。適切に管理されたセッションは、ユーザーがアプリケーションを快適に利用できるようにし、セキュリティを確保するためにも重要です。特に、セッションの有効期限やリフレッシュトークンの管理は、セキュリティリスクを低減するために不可欠です。</p>
+<p>セッション管理は、ユーザーエクスペリエンスを向上させるだけでなく、セキュリティの観点からも重要です。適切なセッション管理が行われないと、ユーザーの情報が不正にアクセスされる危険性があります。特に、セッションハイジャックや不正ログインなどの攻撃からユーザーを守るためには、強固なセッション管理が不可欠です。</p>
 <h2 id="仕組みと基本の流れ"><a class="header" href="#仕組みと基本の流れ">仕組みと基本の流れ</a></h2>
+<p>セッション管理は、ユーザーがログインした際にセッションIDを生成し、それをクッキーに保存します。以降のリクエストでは、このセッションIDを用いてユーザーを特定します。セッションの有効期限が切れると、再度ログインを要求します。</p>
 <ol>
-<li><strong>ログイン</strong>: ユーザーがログインすると、サーバーはセッションIDとリフレッシュトークンを生成します。</li>
-<li><strong>クッキーの設定</strong>: 生成されたセッションIDとリフレッシュトークンは、クッキーとしてブラウザに保存されます。</li>
-<li><strong>セッションの維持</strong>: ユーザーがアプリケーションを利用する際、サーバーはクッキーからセッションIDを取得し、ユーザーの状態を確認します。</li>
-<li><strong>セッションの更新</strong>: 一定の時間が経過すると、リフレッシュトークンを使用して新しいセッションIDを発行し、クッキーを更新します。</li>
-<li><strong>ログアウト</strong>: ユーザーがログアウトすると、クッキーは削除され、セッションは終了します。</li>
+<li>ユーザーがログインすると、セッションIDが生成される。</li>
+<li>セッションIDはクッキーに保存され、ブラウザに送信される。</li>
+<li>ユーザーがリクエストを送信するたびに、セッションIDがサーバーに送信され、ユーザーが認証される。</li>
+<li>セッションの有効期限が切れた場合、再ログインが必要となる。</li>
 </ol>
-<pre><code class="language-mermaid">flowchart TD
-    A[ログイン] --&gt; B[セッションID生成]
-    B --&gt; C[クッキーに設定]
-    C --&gt; D[セッション維持]
-    D --&gt; E[セッション更新]
-    E --&gt; D
-    D --&gt; F[ログアウト]
-    F --&gt; G[クッキー削除]
-</code></pre>
 <h2 id="仕様特徴詳細"><a class="header" href="#仕様特徴詳細">仕様・特徴（詳細）</a></h2>
 <h3 id="データ状態ルール"><a class="header" href="#データ状態ルール">データ・状態・ルール</a></h3>
 <ul>
-<li><strong>セッションID</strong>: ユーザーのセッションを一意に識別するためのトークンです。30分の有効期限があります。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L8">1</a></li>
-<li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークンで、最大400日間有効です。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L12">2</a></li>
-<li><strong>クッキーの設定</strong>: セッションIDとリフレッシュトークンは、HTTPクッキーとしてブラウザに保存されます。これにより、ユーザーが再度ログインすることなく、セッションを維持できます。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/cookie.rs#L18">3</a></li>
+<li><strong>セッションID</strong>: ユーザーを一意に識別するためのトークン。</li>
+<li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークン。</li>
+<li><strong>セッションの有効期限</strong>: セッションIDは30分、リフレッシュトークンは400日間有効。</li>
 </ul>
-<h3 id="フローとアルゴリズム"><a class="header" href="#フローとアルゴリズム">フローとアルゴリズム</a></h3>
-<ol>
-<li>ユーザーがログインすると、サーバーはセッションIDとリフレッシュトークンを生成します。</li>
-<li>生成されたトークンは、クッキーとしてブラウザに保存されます。</li>
-<li>ユーザーがアプリケーションを利用する際、サーバーはクッキーからセッションIDを取得し、ユーザーの状態を確認します。</li>
-<li>セッションが有効な場合、ユーザーはサービスを利用できます。</li>
-<li>セッションが無効な場合、再度ログインを求められます。</li>
-</ol>
+<h3 id="フローとアルゴリズム必要なら-mermaid-図"><a class="header" href="#フローとアルゴリズム必要なら-mermaid-図">フローとアルゴリズム（必要なら Mermaid 図）</a></h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[ユーザーがログイン] --&gt; B[セッションIDを生成]
+    B --&gt; C[セッションIDをクッキーに保存]
+    C --&gt; D[ユーザーがリクエスト]
+    D --&gt; E[セッションIDを確認]
+    E --&gt;|有効| F[リクエストを処理]
+    E --&gt;|無効| G[再ログインを要求]
+</code></pre>
 <h3 id="例外コーナーケース既知の落とし穴"><a class="header" href="#例外コーナーケース既知の落とし穴">例外・コーナーケース・既知の落とし穴</a></h3>
 <ul>
-<li><strong>セッションの盗用</strong>: セッションIDが第三者に知られると、悪用される可能性があります。これを防ぐために、セッションの盗用を検知し、適切な対策を講じる必要があります。<a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/mitigate_session_theft.rs#L10">4</a></li>
-<li><strong>クッキーの有効期限切れ</strong>: クッキーの有効期限が切れると、ユーザーは再度ログインする必要があります。これを適切に管理することが重要です。</li>
+<li><strong>セッションの盗用</strong>: セッションIDが漏洩すると、他のユーザーが不正にアクセスできる。</li>
+<li><strong>リフレッシュトークンの不正使用</strong>: リフレッシュトークンが盗まれると、長期間にわたって不正アクセスが可能になる。</li>
 </ul>
 <h3 id="制約前提非機能要件"><a class="header" href="#制約前提非機能要件">制約・前提・非機能要件</a></h3>
 <ul>
-<li>セッション管理は、セキュリティを考慮して設計される必要があります。特に、セッションIDやリフレッシュトークンは安全に生成され、保存されるべきです。</li>
-<li>セッションの有効期限や更新のタイミングは、システムの要件に応じて設定される必要があります。</li>
+<li>セッションIDは、セキュアな方法で生成され、保存される必要があります。</li>
+<li>セッションの有効期限は、適切に設定され、定期的に更新される必要があります。</li>
 </ul>
 <h2 id="利用シナリオユーザー視点"><a class="header" href="#利用シナリオユーザー視点">利用シナリオ（ユーザー視点）</a></h2>
-<ul>
-<li>ユーザーがアプリケーションにログインし、セッションが開始されます。ユーザーは、一定の時間内に再度ログインすることなく、アプリケーションを利用し続けることができます。</li>
-<li>セッションが切れる前に、リフレッシュトークンを用いて新しいセッションIDが発行され、ユーザーは引き続きサービスを利用できます。</li>
-</ul>
+<p>ユーザーがアプリケーションにログインすると、セッションが開始され、ユーザーはログイン状態を維持したまま、他のページに移動できます。セッションが切れると、再度ログインを求められます。</p>
 <h2 id="運用のヒント--ベストプラクティスbad-knowhow-可"><a class="header" href="#運用のヒント--ベストプラクティスbad-knowhow-可">運用のヒント / ベストプラクティス（bad knowhow 可）</a></h2>
 <ul>
-<li>セッションの有効期限を適切に設定し、ユーザーに不便をかけないようにすることが重要です。</li>
-<li>セッションの盗用を防ぐために、セッションの監視や異常検知の仕組みを導入することが推奨されます。</li>
-<li>クッキーのセキュリティ設定（Secure、HttpOnly、SameSite）を適切に行うことで、セキュリティを強化できます。</li>
+<li>セッションの有効期限を短く設定し、定期的に更新することでセキュリティを強化します。</li>
+<li>セッションIDをHTTPS経由でのみ送信し、クッキーにセキュア属性を設定します。</li>
 </ul>
-<h2 id="用語集"><a class="header" href="#用語集">用語集</a></h2>
+<h2 id="用語集本文と対応づけて"><a class="header" href="#用語集本文と対応づけて">用語集（本文と対応づけて）</a></h2>
 <ul>
-<li><strong>セッションID</strong>: ユーザーのセッションを識別するための一意のトークン。</li>
+<li><strong>セッションID</strong>: ユーザーを識別するための一意のトークン。</li>
 <li><strong>リフレッシュトークン</strong>: セッションを延長するためのトークン。</li>
-<li><strong>クッキー</strong>: ブラウザに保存される小さなデータで、セッション情報を保持するために使用される。</li>
+<li><strong>クッキー</strong>: ブラウザに保存される小さなデータ。</li>
 </ul>
 <h2 id="関連ファイル"><a class="header" href="#関連ファイル">関連ファイル</a></h2>
 <ul>
@@ -249,14 +237,36 @@
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_expiration.rs">src/common/session/session_expiration.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_id.rs">src/common/session/session_id.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/common/session/session_series.rs">src/common/session/session_series.rs</a></li>
-<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/auth/sign_in/endpoint.rs">src/endpoints/auth/sign_in/endpoint.rs</a></li>
-<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/endpoints/auth/sign_out/endpoint.rs">src/endpoints/auth/sign_out/endpoint.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/authenticate.rs">src/middlewares/manage_session/dsl/authenticate.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/extract_session_info.rs">src/middlewares/manage_session/dsl/extract_session_info.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/manage_session.rs">src/middlewares/manage_session/dsl/manage_session.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/mitigate_session_theft.rs">src/middlewares/manage_session/dsl/mitigate_session_theft.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/reauthenticate.rs">src/middlewares/manage_session/dsl/reauthenticate.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/refresh_session_series.rs">src/middlewares/manage_session/dsl/refresh_session_series.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/update_refresh_token.rs">src/middlewares/manage_session/dsl/update_refresh_token.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/dsl/update_session.rs">src/middlewares/manage_session/dsl/update_session.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/authenticate.rs">src/middlewares/manage_session/interpreter/authenticate.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/mitigate_session_theft.rs">src/middlewares/manage_session/interpreter/mitigate_session_theft.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/reauthenticate.rs">src/middlewares/manage_session/interpreter/reauthenticate.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/refresh_session_series.rs">src/middlewares/manage_session/interpreter/refresh_session_series.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/update_refresh_token.rs">src/middlewares/manage_session/interpreter/update_refresh_token.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/manage_session/interpreter/update_session.rs">src/middlewares/manage_session/interpreter/update_session.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/dsl/assign_refresh_pair.rs">src/middlewares/start_session/dsl/assign_refresh_pair.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/dsl/assign_session_id.rs">src/middlewares/start_session/dsl/assign_session_id.rs</a></li>
 <li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/dsl/start_session.rs">src/middlewares/start_session/dsl/start_session.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/interpreter/assign_refresh_pair.rs">src/middlewares/start_session/interpreter/assign_refresh_pair.rs</a></li>
+<li><a href="https://github.com/netmateapp/netmate-api/tree/main/src/middlewares/start_session/interpreter/assign_session_id.rs">src/middlewares/start_session/interpreter/assign_session_id.rs</a></li>
 </ul>
 <h2 id="根拠注釈"><a class="header" href="#根拠注釈">根拠注釈</a></h2>
+<ul>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+</ul>
 
                     </main>
 
